@@ -1,5 +1,6 @@
 library(tidyr)
 library(dplyr)
+library(ggplot2)
 
 ####################################
 #  read 2015 Taxes for Tennessee   # 
@@ -45,3 +46,41 @@ school_cross <- left_join(school, zip_cross, by=c('system' = 'District Number'))
 ##################################
 
 combined_df <- left_join(merged_df, school_cross, by=c('county'='County Name'))
+
+#### Adding AGI Amount per Return ####
+combined_df %>% 
+  filter(return_c > 0) %>% 
+  mutate(agi_per_return = agi_a / return_c) %>% 
+
+##################################
+#    starting plot potential     #
+##################################
+
+
+combined_df %>% 
+  filter(return_c > 0) %>% 
+  mutate(agi_per_return = agi_a / return_c) %>% 
+  group_by(county, agi_range) %>% 
+  summarise(avg_act = mean(ACT_Composite)) %>% 
+  ggplot(aes(., x=avg_act, y=agi_per_return)) +
+  geom_point()
+
+
+combined_df %>% 
+  filter(zip_code != 0 | zip_code != 99999) %>% 
+  filter(agi_range != 'Total') %>% 
+  group_by(agi_range) %>% 
+  ggplot(., aes(x=agi_range, y=agi_a)) +
+  geom_point()
+
+
+#### boxplot for ACT scores as a function of CORE Region ####
+combined_df %>% 
+  filter(zip_code != 0 | zip_code != 99999) %>% 
+  filter(agi_range != 'Total') %>% 
+  ggplot(., aes(x=CORE_region, y=ACT_Composite)) +
+  geom_boxplot() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+
+
