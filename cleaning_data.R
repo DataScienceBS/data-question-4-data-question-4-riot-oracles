@@ -45,7 +45,3 @@ school_cross <- left_join(school, zip_cross, by=c('system' = 'District Number'))
 ##################################
 
 combined_df <- left_join(merged_df, school_cross, by=c('county'='County Name'))
-
-
-
-
