@@ -83,4 +83,33 @@ combined_df %>%
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
 
+###########################
+#### mapping Tennessee ####
+###########################
+# help from: http://eriqande.github.io/rep-res-web/lectures/making-maps-with-R.html
+###########################
+
+
+library(maps)
+library(mapdata)  #preloaded state/county coordinates
+
+TN_data <- map_data("state") %>% 
+  filter(region =='tennessee')
+
+TN_counties <- map_data("county") %>% subset(., region == "tennessee")
+
+TN_map <- ggplot(data = TN_data, mapping = aes(x = long, y = lat, group = group)) + 
+  coord_fixed(1.3) + 
+###  geom_polygon(color = "black", fill = "gray") +  #unused? extra code to be removed
+  geom_polygon(data = TN_counties, fill = "orange", color = "white") +  #county fill and borders
+  geom_polygon(color = "black", fill = NA) #state outline and fill
+### need to remove plot background ###
+
+
+##########################################
+# converting tax$county to lcase for map #
+##########################################
+
+combined_df$county_l <- sapply(combined_df$county, tolower) %>% gsub(' county','',.)
+combined_df$county_l
 
