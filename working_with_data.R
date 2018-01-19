@@ -3,14 +3,13 @@ library(dplyr)
 library(ggplot2)
 
 combined_df <- readRDS("combined_df.RDS")
-combined_df
 
 #### Adding AGI Amount per Return ####
 
 combined_df %>% 
   filter(return_c > 0) %>% 
-  mutate(agi_per_return = agi_a / return_c) 
-
+  mutate(agi_per_return = agi_a / return_c)  
+## consider multiplying by 1k ##
 
     
 ##################################
@@ -92,7 +91,7 @@ top_10_pop
 
 
 ##########################################################
-#  join tax/count_l before mapping,  fill counties by:
+#  join tax/count_l before mapping,  fill counties by:  
 # 
 # 1. Group By county, sum/avg with enrollment weighted
 # 2. avg. AGI amt per return filed
@@ -103,6 +102,9 @@ top_10_pop
 # 7. total Math / Science 
 # 8. % non-white
 # 9. find correlations, colorfill Top/Bottom 10
+#   9a. percentage of AGI Group count per county => Top 10, corr w/ graduation rate 
+#   9b. percentage of AGI group, Top 10/Bottom 10, corr w/  ACT composite 
+#   9c. 3-dimensional heat map, x = Percentage, y = AGI Group, z = Graduation Rate | ACT Comp
 # 
 ########################################################## 
 
@@ -111,3 +113,26 @@ top_10_pop
 ###################
 
 pairs(~ CORE_region + ACT_Composite + irs_estimated_population_2014 + agi_a, data=combined_df)
+
+
+
+### attempt at 3-dimensional heatmap. x=% of AGI group, y=AGI group, z=graduation rate ###
+grad_by_agi <- combined_df %>% 
+  select(county, zip_code, agi_range,return_c, ACT_Composite) %>% 
+  filter(zip_code != 0 | zip_code != 99999) %>% 
+  filter(county == 'Anderson County') %>% 
+  group_by(county, agi_range, return_c) %>% 
+  summarise(total_filed = sum(return_c)) %>% 
+  View()
+
+  ungroup() %>% 
+  group_by(county,agi_range) %>%  
+  summarise(avg_act = mean(ACT_Composite)) %>% 
+  mutate(pct_group = (return_c/total_filed)) %>% 
+  View()
+
+combined_df %>% 
+  filter(county == 'Anderson County') %>% 
+  select(agi_range,county,zip_code, return_c) %>% 
+  View()
+

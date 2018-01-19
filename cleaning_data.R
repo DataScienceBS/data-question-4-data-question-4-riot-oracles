@@ -1,6 +1,5 @@
 library(tidyr)
 library(dplyr)
-library(ggplot2)
 
 ####################################
 #  read 2015 Taxes for Tennessee   # 
@@ -29,7 +28,25 @@ zip_codes <- readxl::read_excel("data/zip_code_database.xlsx") %>%
   filter(state == "TN")
 
 merged_df <- left_join(TN_tax_2015, zip_codes, by=c('zip_code' = 'zip'))
-View(merged_df)
+
+#### adding feature: total returns filed by county ####
+filed_by_county <- merged_df %>% 
+  select(county, zip_code, agi_range, return_c) %>% 
+  group_by(county, agi_range) %>% 
+  summarise(filed_per_agi = sum(return_c)) 
+
+filed_by_county %<>%
+  group_by(county) %>% 
+  mutate(filed_per_county = sum(filed_per_agi))
+
+filed_by_county %<>%
+  group_by(county) %>% 
+  mutate(ratio_by_agi = (filed_per_agi/filed_per_county)*100)
+## consider format to allow one decimal, or convert to percentage ##
+
+### now JOIN filed_by_county$ratio_by_agi with merged dataframe ###
+View(filed_by_county)
+
 
 ################################
 #     loading school data      #
@@ -46,6 +63,7 @@ school_cross <- left_join(school, zip_cross, by=c('system' = 'District Number'))
 ##################################
 
 combined_df <- left_join(merged_df, school_cross, by=c('county'='County Name'))
+
 saveRDS(combined_df, file="combined_df.RDS")
 
 
