@@ -41,12 +41,11 @@ filed_by_county %<>%
 
 filed_by_county %<>%
   group_by(county) %>% 
-  mutate(ratio_by_agi = (filed_per_agi/filed_per_county)*100)
-## consider format to allow one decimal, or convert to percentage ##
+  mutate(ratio_by_agi = round((filed_per_agi/filed_per_county)*100,1))
 
-### now JOIN filed_by_county$ratio_by_agi with merged dataframe ###
+merged_df <- left_join(merged_df, filed_by_county, by = c('county' = 'county', 'agi_range' = 'agi_range'))
+
 View(filed_by_county)
-
 
 ################################
 #     loading school data      #
@@ -64,6 +63,7 @@ school_cross <- left_join(school, zip_cross, by=c('system' = 'District Number'))
 
 combined_df <- left_join(merged_df, school_cross, by=c('county'='County Name'))
 
+saveRDS(merged_df, file="merged_df.RDS")
+saveRDS(school_cross, file="school_cross.RDS")
 saveRDS(combined_df, file="combined_df.RDS")
-
 
