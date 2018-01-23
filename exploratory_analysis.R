@@ -32,7 +32,7 @@ bhn_agi_plot <- zip_total %>%
 ## Code for exploratory analysis
 pairs(~AlgI + AlgII + Math + BioI + Chemistry + Science + Pct_ED, data = bhn_agi_plot)
 
-bhn_lm <- lm(mean_bhn ~ mean_act, data = bhn_agi_plot, na.action = na.exclude)
+bhn_lm <- lm(Pct_ED ~ BioI, data = subjects_df, na.action = na.exclude)
 plot(bhn_lm)
 
 ggplot(bhn_agi_plot, aes(x = avg_agi, y = avg_unemp)) +
@@ -56,12 +56,17 @@ cor.test(bhn_agi_plot$AlgI, bhn_agi_plot$Pct_ED, method = "pearson")
 ## 
 
 subjects_df <- zip_total %>% 
-  select(system_name, AlgI, AlgII, Math, 
-         BioI, Chemistry, Science, Pct_ED) %>%
+  select(system_name, Pct_ED, AlgI, AlgII, Math, 
+         BioI, Chemistry, Science) %>%
   group_by(system_name) %>% 
   summarise_all(funs(mean))
 
 PerformanceAnalytics::chart.Correlation(subjects_df[2:8], histogram = TRUE, pch = 19)
+
+ggplot(subjects_df, aes(x = BioI, y = Pct_ED)) +
+  geom_point(alpha = 0.3) +
+  geom_smooth(method='lm')
+
 
 ## Avg by_agi_range to show mean AGI and graduation rates by zip, including CORE region
 agi_grad_plot <- by_agi_range %>% 
