@@ -83,13 +83,79 @@ school_mem2015 <- read_csv("data/data_2015_membership_school.csv")
 #county crosswalk dat to get the county names
 crosswalk <- read_xls("data/county_crosswalk.xls")
 
-
+mem <- filter(school_mem2015, grade %in% c("9", "10", "11", "12"))
 
 pairs(~Graduation + Dropout + Per_Pupil_Expenditures, data=school)
+pairs(~ELA + Math + Science + ACT_Composite + Per_Pupil_Expenditures, data = school)
 mem <- filter(school_mem2015, grade %in% c("9", "10", "11", "12"))
 
 
 library(PerformanceAnalytics)
 chart.Correlation(school[, 3:6], histogram = TRUE, pch="+")
+
+#to find the perunit tax return in various cat by amount/count####
+tax2015c <- mutate(tax2015b, agi = agi_a/return_c,
+                   wage = wage_a/wage_c,
+                   tax_int = tax_int_a/tax_int_c,
+                   div = div_a/div_c,
+                   biz_inc = biz_inc_a/biz_inc_c,
+                   cap_gain = cap_gain_a/cap_gain_c,
+                   ira = ira_a/ira_c,
+                   pension = pension_a/pension_c,
+                   unemp_comp = unemp_comp_a/unemp_comp_c,
+                   ss_ben = ss_ben_a/ss_ben_c,
+                   deduction = deductions_a/deductions_c,
+                   state_inc = state_inc_tax_a/state_inc_tax_c,
+                   sales_tax = sales_tax_a/sales_tax_c,
+                   prop = prop_tax_a/prop_tax_c,
+                   mortgage = mortgage_a/mortgage_c,
+                   contrib = contrib_a/contrib_c,
+                   taxable = taxable_a/taxable_c,
+                   credits = credits_a/credits_c,
+                   eic = eic_a/eic_c,
+                   excess_eic = excess_eic_a/excess_eic_c,
+                   tax_liab = tax_liab_a/tax_liab_c,
+                   tax_due = tax_due_a/tax_due_c,
+                   refund = refund_a/refund_c)
+View(tax2015c)
+
+totaltax <- mutate(totaltax_zip, agi = agi_a/return_c,
+                   wage = wage_a/wage_c,
+                   tax_int = tax_int_a/tax_int_c,
+                   div = div_a/div_c,
+                   biz_inc = biz_inc_a/biz_inc_c,
+                   cap_gain = cap_gain_a/cap_gain_c,
+                   ira = ira_a/ira_c,
+                   pension = pension_a/pension_c,
+                   unemp_comp = unemp_comp_a/unemp_comp_c,
+                   ss_ben = ss_ben_a/ss_ben_c,
+                   deduction = deductions_a/deductions_c,
+                   state_inc = state_inc_tax_a/state_inc_tax_c,
+                   sales_tax = sales_tax_a/sales_tax_c,
+                   prop = prop_tax_a/prop_tax_c,
+                   mortgage = mortgage_a/mortgage_c,
+                   contrib = contrib_a/contrib_c,
+                   taxable = taxable_a/taxable_c,
+                   credits = credits_a/credits_c,
+                   eic = eic_a/eic_c,
+                   excess_eic = excess_eic_a/excess_eic_c,
+                   tax_liab = tax_liab_a/tax_liab_c,
+                   tax_due = tax_due_a/tax_due_c,
+                   refund = refund_a/refund_c)
+View(totaltax)
+##drop all the col which are not per count
+totaltax <- totaltax[-(2:52)]
+
+#to replace the na with 0 in totaltax data
+totaltax[is.na(totaltax)]<- 0
+
+max_agi <- totaltax%>%
+  filter(agi == max(totaltax$agi))
+pairs(~agi + wage + pension + ss_ben + ira, data=totaltax)
+ggplot(totaltax, aes(x = agi)) +
+  geom_histogram(binwidth = 5)
+ggplot(school, aes(x = CORE_region, y = Enrollment)) +
+  geom_boxplot()
+
 
 #testing commit for branch
