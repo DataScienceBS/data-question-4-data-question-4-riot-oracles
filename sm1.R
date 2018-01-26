@@ -170,11 +170,25 @@ sc_cr <- school%>%
             mean_enrol = mean(Enrollment),
             mean_expense = mean(Per_Pupil_Expenditures),
             mean_absent = mean(Pct_Chronically_Absent))
+##sum up the row which will give total % of student leaving in middle
+##due to expel and dropout
+sc_cr2 <- sc_cr %>%
+  rowwise()%>%
+  mutate(left = sum(mean_exp, mean_dropout))
+#drop the row which is for all TN
+sc_cr2 <- sc_cr2[-9, ]
+  
+ggplot( sc_cr2, aes(x=mean_exp, y=mean_enrol, color = CORE_region)) + 
+          geom_point() + ggtitle("Comparing Enrollment to expense per pupil")
+        
 
 
+school_crosswalk <- left_join(school, crosswalk, by = c("system" = "District Number"))
+ttax_zip <- left_join(totaltax, zip_TNa, by = c("zip_code" = "zip")) 
+###meged the school+crosswalk+totaltax+zip
 
-  ggplot( school, aes(x=CORE_region, y=Graduation) + geom_boxplot()
-
+merged  <- left_join(school_crosswalk, ttax_zip, by = c("County Name" = "county"))
+merged2 <- left_join(ttax_zip, school_crosswalk, by = c("county" = "County Name"))
 library(corrplot)
 
 #testing commit for branch
