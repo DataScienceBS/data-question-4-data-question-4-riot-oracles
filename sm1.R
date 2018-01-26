@@ -157,5 +157,24 @@ ggplot(totaltax, aes(x = agi)) +
 ggplot(school, aes(x = CORE_region, y = Enrollment)) +
   geom_boxplot()
 
+school[is.na(school)]<- 0
+View(school)
+
+sc_cr <- school%>%
+  group_by(CORE_region)%>%
+  summarise(mean_grad = mean(Graduation), 
+            mean_composite = mean(ACT_Composite),
+            mean_sus = mean(Pct_Suspended),
+            mean_exp = mean(Pct_Expelled),
+            mean_dropout = mean(Dropout),
+            mean_enrol = mean(Enrollment),
+            mean_expense = mean(Per_Pupil_Expenditures),
+            mean_absent = mean(Pct_Chronically_Absent))
+
+
+
+  ggplot( school, aes(x=CORE_region, y=Graduation) + geom_boxplot()
+
+library(corrplot)
 
 #testing commit for branch
