@@ -55,13 +55,14 @@ View(filed_by_county)
 
 school <- read.csv('data/achievement_profile_data_with_CORE.csv')
 zip_cross <- readxl::read_excel("data/county_ref_data.xls")
+zip_cross$County_Name <- zip_cross$'County Name'
 school_cross <- left_join(school, zip_cross, by=c('system' = 'District Number'))
 
 ##################################
 #  joining tax data with school  #
 ##################################
 
-combined_df <- left_join(merged_df, school_cross, by=c('county'='County Name'))
+combined_df <- left_join(merged_df, school_cross, by=c('county'='County_Name'))
 
 saveRDS(merged_df, file="merged_df.RDS")
 saveRDS(school_cross, file="school_cross.RDS")

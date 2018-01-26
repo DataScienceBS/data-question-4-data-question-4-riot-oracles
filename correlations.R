@@ -62,7 +62,7 @@ cor.test(school_farm$pct_farm, school_farm$Enrollment, method = 'pearson') # -0.
 
 
 ######################################
-## begin analysis on ACT Composite  ##
+##   begin ACT Composite analysis   ##
 ######################################
 pairs(~ ACT_Composite + AlgI + AlgII + Math, data=school_farm) # Math
 pairs(~ ACT_Composite + BioI + Chemistry + Science, data=school_farm) # Sciences
@@ -121,18 +121,14 @@ model_acme_2 <- lm(formula = ACT_Composite ~ AlgII + Math + Chemistry + ELA, dat
 summary(model_acme_2)
 plot(model_acme_2)
 
+
 #########################################################################   
 ######  testing prediction data based on 4 proficiency categories  ######
+######            ACME: AlgII, Chemistry, Math, and ELA            ######
 #########################################################################
-test_acme_lo <- data.frame(AlgII = 40, Chemistry = 42, Math = 35, ELA = 28)
-test_acme_mid <- data.frame(AlgII = 77, Chemistry = 72, Math = 60, ELA = 65)
-test_acme_hi <- data.frame(AlgII = 92, Chemistry = 94, Math = 87, ELA = 89)
 dekalb_acme <- data.frame(AlgII = 55.6, Chemistry = 53.9, Math = 54.4, ELA = 45.7)
 dekalb_full <- data.frame(AlgI = 52.9, AlgII = 55.6, Math = 54.4, Science = 65.9, BioI = 72.1, Chemistry = 53.9, ELA = 45.7, EngI = 73.4, EngII = 72.0, EngIII = 31.0)
   
-predict(model_acme, test_acme_lo)
-predict(model_acme, test_acme_mid)
-predict(model_acme, test_acme_hi)
 predict(model_acme, dekalb_acme)
 predict(model_full,dekalb_full)
 #########################################################################   
@@ -153,6 +149,7 @@ school_cross_no_dekalb_no_outliers
 ##########################################################################
 #####   SUCCSES! in predicting ACT Composite based on proficiency    #####
 ##########################################################################
+
 
 #### correlation mapping with PerformanceAnalytics package ####
 library(PerformanceAnalytics)

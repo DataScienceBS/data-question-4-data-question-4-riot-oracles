@@ -80,9 +80,35 @@ TN_map <- ggplot(data = TN_data, mapping = aes(x = long, y = lat, group = group)
   geom_polygon(data = TN_counties, fill = "orange", color = "white") +  #county fill and borders
   geom_polygon(color = "black", fill = NA) #state outline and fill
 
-### need to remove plot background ###
-
 TN_map
+
+
+############ testing other map options ############
+# color_df <- school_cross %>%
+#   select(CORE_region, County_Name, Enrollment, Per_Pupil_Expenditures, ACT_Composite) %>%
+#   group_by(County_Name) %>%
+#   summarise(Average_ACT_Composite = mean(ACT_Composite, na.rm = TRUE),
+#             Total_Per_Pupil_Expenditure = sum(Per_Pupil_Expenditures, na.rm = TRUE),
+#             Total_Enrollment  = sum(Enrollment, na.rm = TRUE),
+#             Avg_Per_Pupil_Exp = Total_Enrollment/Total_Per_Pupil_Expenditure)
+# 
+# color_df <- left_join(x = TN_counties, y = color_df, by = c("subregion" = "county_l"))
+# 
+# TN_map <- ggplot() +
+#   geom_polygon(data = color_df,
+#                aes(x = long.x, y = lat.x, group = group.x, fill = # need fill from Pupils #),
+#                color = "white", size = 0.25) +
+#   coord_map() +
+#   scale_fill_distiller(name="Percent", palette = "YlGn") +
+# #  theme_nothing(legend = TRUE) +
+#   labs(title = "Per Puil Expenditures by County")
+############ testing other map options ############
+
+
+
+
+
+
 
 ##################################
 ###   Top 10 counties by pop   ###
@@ -162,121 +188,3 @@ combined_df %>%
   geom_point()
 
 
-
-# -0.546 correlation between ACT Composite and Dropout rate #
-## 95% confidence interval:  -0.564, -0.527 ##
-### moderate negative linear correlation between ACT Composite score and the Dropout rate ###
-#### Plot of ACL vs. Dropout ####
-
-school %>% 
-  filter(ACT_Composite > 15) %>% 
-  ggplot(., aes(x = ACT_Composite, y = Dropout)) + 
-  geom_point() + 
-  geom_smooth(method = 'lm', se = FALSE) +
-  ylim(-5,35)
-
-corr_testing <- school %>% 
-  filter(Dropout != 'NA') %>% 
-  filter(ACT_Composite > 15)
-
-cor.test(corr_testing$Dropout, corr_testing$ACT_Composite, method = "pearson")
-cor.test(school$Dropout, school$ACT_Composite, method = "pearson")
-# correlation between Dropout and ACT Composite is -0.336, removing 1 outlier ACT<15 adjusts to -0.243
-  
-##############################
-#   begin analysis on farms  #
-##############################
-
-farm_by_county <- merged_df %>% 
-  select(county, zip_code, agi_range, return_c, farm_c) %>% 
-  group_by(county, agi_range) %>% 
-  summarise(filed_per_agi = sum(return_c),
-            farm_per_agi = sum(farm_c)) 
-
-farm_by_county %<>%
-  group_by(county) %>% 
-  mutate(filed_per_county = sum(filed_per_agi),
-         farm_per_county = sum(farm_per_agi),
-         pct_farm = round((farm_per_county/filed_per_county)*100,1)) %>% 
-  select(county,pct_farm) %>% 
-  distinct(.)
-
-school_cross$county <- school_cross$`County Name`
-school_farm <- merge(x = school_cross, y = farm_by_county, by='county', all.x=TRUE)
-
-cor.test(school_farm$pct_farm, school_farm$Dropout, method = 'pearson')    #  -0.113
-cor.test(school_farm$pct_farm, school_farm$ACT_Composite, method = 'pearson')   # -0.241
-cor.test(school_farm$pct_farm, school_farm$Pct_ED, method = 'pearson') #  0.229
-cor.test(school_farm$pct_farm, school_farm$Pct_Suspended, method = 'pearson') #  -0.353 (there is a negative correlation between Farm/Susp)
-cor.test(school_farm$pct_farm, school_farm$Pct_BHN, method = 'pearson') # -0.380
-cor.test(school_farm$pct_farm, school_farm$Graduation, method = 'pearson') #0.151
-cor.test(school_farm$pct_farm, school_farm$Enrollment, method = 'pearson') # -0.111
-
-
-######################################
-## begin analysis on ACT Composite  ##
-######################################
-pairs(~ ACT_Composite + AlgI + AlgII + Math, data=school_farm) # Math
-pairs(~ ACT_Composite + BioI + Chemistry + Science, data=school_farm) # Sciences
-
-# correlate ACT with subjects
-cor.test(school_cross$ACT_Composite, school_cross$AlgI, method = 'pearson')    # 0.436
-cor.test(school_cross$ACT_Composite, school_cross$AlgII, method = 'pearson')   # 0.607
-cor.test(school_cross$ACT_Composite, school_cross$Math, method = 'pearson')    # 0.660
-cor.test(school_cross$ACT_Composite, school_cross$Science, method = 'pearson') # 0.715
-cor.test(school_cross$ACT_Composite, school_cross$BioI, method = 'pearson')    # 0.678
-cor.test(school_cross$ACT_Composite, school_cross$Chemistry, method = 'pearson') # 0.678
-cor.test(school_cross$ACT_Composite, school_cross$ELA, method = 'pearson')    # 0.787
-cor.test(school_cross$ACT_Composite, school_cross$EngI, method = 'pearson')   # 0.739
-cor.test(school_cross$ACT_Composite, school_cross$EngII, method = 'pearson')  # 0.734
-cor.test(school_cross$ACT_Composite, school_cross$EngIII, method = 'pearson') # 0.605
-
-# first iteration of model #
-model_full <- lm(formula = ACT_Composite ~ AlgI + AlgII + Math + Science + BioI + Chemistry + ELA + EngI + EngII + EngIII, data = school_cross)
-plot(model_full)
-summary(model_full)
-
-# tweaking model for best features # 
-#  ACME = AlgII, Chem, Math, ELA   #
-model_acme <- lm(formula = ACT_Composite ~ AlgII + Math + Chemistry + ELA, data = school_cross)
-summary(model_acme)
-plot(model_acme)
-
-# working to identify outliers from the plots #
-school_cross[c(18,30,40),]
-
-# correlate ACT with non-academic features
-cor.test(school_cross$ACT_Composite, school_cross$Graduation, method = 'pearson')             # 0.357
-cor.test(school_cross$ACT_Composite, school_cross$Pct_Chronically_Absent, method = 'pearson') # -0.392
-cor.test(school_cross$ACT_Composite, school_cross$Per_Pupil_Expenditures, method = 'pearson') # -0.083
-
-cor.test(school_cross$ACT_Composite, school_cross$Pct_BHN, method = 'pearson')        # -0.21
-cor.test(school_cross$ACT_Composite, school_cross$Pct_Hispanic, method = 'pearson')   # 0.073
-cor.test(school_cross$ACT_Composite, school_cross$Pct_Black, method = 'pearson')      # -0.251
-cor.test(school_cross$ACT_Composite, school_cross$Pct_Native_American, method = 'pearson') # 0.257
-
-
-#########################################################################   
-######  testing prediction data based on 4 proficiency categories  ######
-#########################################################################
-test_acme_lo <- data.frame(AlgII = 40, Chemistry = 42, Math = 35, ELA = 28)
-test_acme_mid <- data.frame(AlgII = 77, Chemistry = 72, Math = 60, ELA = 65)
-test_acme_hi <- data.frame(AlgII = 92, Chemistry = 94, Math = 87, ELA = 89)
-dekalb_acme <- data.frame(AlgII = 55.6, Chemistry = 53.9, Math = 54.4, ELA = 45.7)
-dekalb_full <- data.frame(AlgI = 52.9, AlgII = 55.6, Math = 54.4, Science = 65.9, BioI = 72.1, Chemistry = 53.9, ELA = 45.7, EngI = 73.4, EngII = 72.0, EngIII = 31.0)
-  
-predict(model_acme, test_acme_lo)
-predict(model_acme, test_acme_mid)
-predict(model_acme, test_acme_hi)
-predict(model_acme, dekalb_acme)
-predict(model_full,dekalb_full)
-#########################################################################   
-######  using DeKalb County, ACME model estimates 17.7 ACT Score   ######
-######  using DeKalb County, full model estimates 19.4 ACT Score   ######
-######         Actual DeKalb County ACT Score was 19.1             ######
-#########################################################################
-
- 
-library(PerformanceAnalytics)
-my_data <- school_cross[, c('ACT_Composite', 'AlgII', 'Math', 'Chemistry', 'ELA')]
-chart.Correlation(my_data, histogram=TRUE, pch=21)
