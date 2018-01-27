@@ -1,0 +1,52 @@
+---
+title: "Riot Oracles"
+author: "Justin, Smita, and Brandon"
+date: "2/3/2018"
+output:
+    html_document: default
+---
+
+```{r reading_data, include=FALSE}
+knitr::opts_chunk$set(include = FALSE)
+combined_df <- readRDS("combined_df.RDS")
+merged_df <- readRDS("merged_df.RDS")
+school_cross <- readRDS("school_cross.RDS")
+```
+
+### Data and Approach
+We used IRS tax data for the state of Tennessee to review income levels by zip code, along with other financial variables, to find correlation with county level school data. We analyzed school and tax data separately, as well as their influence on each other. The data sources for our research have been included in our [Sources Cited](#sources-cited). 
+
+
+### Our Observations
+Need to plug in boxplot interpretation......
+
+```{r act_by_core, echo=FALSE}
+combined_df %>% 
+  filter(zip_code != 0 | zip_code != 99999) %>% 
+  filter(agi_range != 'Total') %>% 
+  filter(CORE_region != 'NA') %>% 
+  ggplot(., aes(x=CORE_region, y=ACT_Composite)) +
+  geom_boxplot() +
+  theme(axis.text.x = element_text(angle = 60, hjust = 1))
+
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+
+### Sources Cited
+Packages Used
+*  ggplot2  
+*  dplyr  
+*  tidyr  
+*  PerformanceAnalytics  
+*  maps  
+*  mapdata  

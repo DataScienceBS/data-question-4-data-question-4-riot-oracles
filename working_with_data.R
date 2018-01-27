@@ -46,9 +46,10 @@ combined_df %>%
 combined_df %>% 
   filter(zip_code != 0 | zip_code != 99999) %>% 
   filter(agi_range != 'Total') %>% 
+  filter(CORE_region != 'NA') %>% 
   ggplot(., aes(x=CORE_region, y=ACT_Composite)) +
   geom_boxplot() +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+  theme(axis.text.x = element_text(angle = 60, hjust = 1))
 
 
 ###########################
