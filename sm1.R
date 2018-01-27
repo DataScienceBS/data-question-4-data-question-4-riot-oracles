@@ -7,7 +7,9 @@ library(tidyverse)
 library(dplyr)
 library(gapminder)
 library(ggplot2)
-
+library(corrplot)
+library(GGally)
+library(ggcorrplot)
 #read the data from the dowloads had to redo as editing the column names in xcel  converted the 
 #numeric values to character values
 
@@ -178,10 +180,13 @@ sc_cr2 <- sc_cr %>%
 #drop the row which is for all TN
 sc_cr2 <- sc_cr2[-9, ]
   
-ggplot( sc_cr2, aes(x=mean_exp, y=mean_enrol, color = CORE_region)) + 
+ggplot( sc_cr2, aes(x=mean_expense, y=mean_enrol, color = CORE_region)) + 
           geom_point() + ggtitle("Comparing Enrollment to expense per pupil")
-        
-
+ggplot( sc_cr2, aes(x=CORE_region, y=mean_grad, color = CORE_region)) + 
+  geom_boxplot() + 
+  ggtitle("Comparing Graduation rate across TN core region") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  xlab("") + ylab("Percent Graduation")
 
 school_crosswalk <- left_join(school, crosswalk, by = c("system" = "District Number"))
 ttax_zip <- left_join(totaltax, zip_TNa, by = c("zip_code" = "zip")) 
@@ -189,6 +194,21 @@ ttax_zip <- left_join(totaltax, zip_TNa, by = c("zip_code" = "zip"))
 
 merged  <- left_join(school_crosswalk, ttax_zip, by = c("County Name" = "county"))
 merged2 <- left_join(ttax_zip, school_crosswalk, by = c("county" = "County Name"))
-library(corrplot)
 
+
+corr <- round(cor(totaltax), 1)
+head(corr[, 1:6])
+
+library(MASS)
+plot(sc_cr2$mean_enrol, sc_cr2$mean_grad, 
+     pch = 17, col = 'red', ylim = c(0, 100))
+points(sc_cr2$mean_enrol, sc_cr2$mean_composite, 
+       pch = 16, col = 'blue')
+abline(a = 0, b = 1, lty = 2)
+
+ggplot(merged2, aes(x= CORE_region, y = agi, 
+       color = CORE_region, size = irs_estimated_population_2014)) + 
+  geom_point() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  xlab("") + ylab("Income per return")
 #testing commit for branch
