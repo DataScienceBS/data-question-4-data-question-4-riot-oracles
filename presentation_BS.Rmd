@@ -13,6 +13,11 @@ merged_df <- readRDS("merged_df.RDS")
 school_cross <- readRDS("school_cross.RDS")
 ```
 
+```{r libraries, include=FALSE}
+library(ggplot2)
+library(dplyr)
+```
+
 ### Data and Approach
 We used IRS tax data for the state of Tennessee to review income levels by zip code, along with other financial variables, to find correlation with county level school data. We analyzed school and tax data separately, as well as their influence on each other. The data sources for our research have been included in our [Sources Cited](#sources-cited). 
 
@@ -20,7 +25,7 @@ We used IRS tax data for the state of Tennessee to review income levels by zip c
 ### Our Observations
 Need to plug in boxplot interpretation......
 
-```{r act_by_core, echo=FALSE}
+```{r act_by_core, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 combined_df %>% 
   filter(zip_code != 0 | zip_code != 99999) %>% 
   filter(agi_range != 'Total') %>% 
@@ -33,20 +38,27 @@ combined_df %>%
 
 ## Including Plots
 
-You can also embed plots, for example:
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+```{r ACT by County, echo=FALSE}
+#plot(goes here)
+# need to clean - dekalb = DeKalb
+# consolidate code for Rmd
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
 
 
 ### Sources Cited
 Packages Used
+*  readxl  
 *  ggplot2  
+*  knitr  
 *  dplyr  
 *  tidyr  
 *  PerformanceAnalytics  
 *  maps  
 *  mapdata  
+*  mapproj  
+
+ 
+consider including links to the data, and links to supporting websites for mapdata?
+

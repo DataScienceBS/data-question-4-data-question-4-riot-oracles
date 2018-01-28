@@ -85,24 +85,27 @@ TN_map
 
 
 ############ testing other map options ############
-# color_df <- school_cross %>%
-#   select(CORE_region, County_Name, Enrollment, Per_Pupil_Expenditures, ACT_Composite) %>%
-#   group_by(County_Name) %>%
-#   summarise(Average_ACT_Composite = mean(ACT_Composite, na.rm = TRUE),
-#             Total_Per_Pupil_Expenditure = sum(Per_Pupil_Expenditures, na.rm = TRUE),
-#             Total_Enrollment  = sum(Enrollment, na.rm = TRUE),
-#             Avg_Per_Pupil_Exp = Total_Enrollment/Total_Per_Pupil_Expenditure)
-# 
-# color_df <- left_join(x = TN_counties, y = color_df, by = c("subregion" = "county_l"))
-# 
-# TN_map <- ggplot() +
-#   geom_polygon(data = color_df,
-#                aes(x = long.x, y = lat.x, group = group.x, fill = # need fill from Pupils #),
-#                color = "white", size = 0.25) +
-#   coord_map() +
-#   scale_fill_distiller(name="Percent", palette = "YlGn") +
-# #  theme_nothing(legend = TRUE) +
-#   labs(title = "Per Puil Expenditures by County")
+color_df <- school_cross %>%
+  select(CORE_region, County_Name, Enrollment, Per_Pupil_Expenditures, ACT_Composite) %>%
+  group_by(County_Name) %>%
+  summarise(Average_ACT_Composite = mean(ACT_Composite, na.rm = TRUE),
+            Total_Per_Pupil_Expenditure = sum(Per_Pupil_Expenditures, na.rm = TRUE),
+            Total_Enrollment  = sum(Enrollment, na.rm = TRUE),
+            Avg_Per_Pupil_Exp = Total_Enrollment/Total_Per_Pupil_Expenditure)
+
+
+color_df$county_l <- sapply(color_df$County_Name, tolower) %>% gsub(' county','',.)
+color_df <- left_join(x = TN_counties, y = color_df, by = c("subregion" = "county_l"))
+
+library(mapproj)
+TN_map <- ggplot() +
+  geom_polygon(data = color_df,
+               aes(x = long, y = lat, group = group, fill = Average_ACT_Composite),
+               color = "white", size = 0.25) +
+  coord_map() +
+  scale_fill_distiller(name="ACT Scores", palette = "YlGn") +
+#  theme_nothing(legend = TRUE) +
+  labs(title = "Average ACT Composite Scores by County")
 ############ testing other map options ############
 
 
