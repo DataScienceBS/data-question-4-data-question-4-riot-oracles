@@ -1,5 +1,5 @@
 load("data/merged_df.rds")
-
+library(dplyr)
 library(plotly)
 library(maps)
 library(mapdata)
@@ -20,7 +20,7 @@ subjects_df <- zip_total %>%
   filter(!is.na(CORE_region))
 
 ## Visualising correlations
-PerformanceAnalytics::chart.Correlation(subjects_df[5:11], histogram = TRUE, pch = 19)
+PerformanceAnalytics::chart.Correlation(subjects_df[3:9], histogram = TRUE, pch = 21)
 
 ## Looking at the data from our outliers based on LM results
 ## Davidson County, Fentress County, Germantown City
@@ -40,12 +40,13 @@ ED_subject_plot <- ggplot(ed_df, aes(x = Pct_ED, y = Pct_proficient, color = Sub
   geom_point(alpha = 0.4) +
   geom_smooth(method = 'lm')
 
-ED_CORE_plot <- ggplot(ed_df, aes(x = Pct_ED, y = Pct_proficient, color = CORE_region), text = paste("System: ", system_name)) +
-  geom_point(alpha = 0.4) +
+ED_CORE_plot <- ggplot(ed_df, aes(x = Pct_ED, y = Pct_proficient, color = CORE_region)) +
+  geom_point(aes(text = paste('<br>System Name: ', system_name, '<br>Subject: ', Subject)), alpha = 0.4) +
   geom_smooth(method = 'lm')
 
 int_ed_core_plot <- plotly::ggplotly(ED_CORE_plot)
-
+                            
+int_ed_core_plot
 ## Cloropleth
 ## Filtering and summarising subject proficiency
 chloro_df <- zip_total %>% 
@@ -64,8 +65,11 @@ TN_data <- map_data("state") %>%
 TN_counties <- map_data("county") %>% 
                subset(., region == "tennessee")
 
+TN_counties$subregion <- TN_counties$subregion %>% 
+                         gsub('de kalb', 'dekalb', .)
+
 chloro_df$county_l <- sapply(chloro_df$county, tolower) %>% 
-                      gsub(' county','',.)
+                      gsub(' county','', .)
 
 ## Left join to merge polygon and county data
 
@@ -75,11 +79,49 @@ chloro_df <- left_join(x = TN_counties, y = chloro_df, by = c("subregion" = "cou
 
 TN_map <- ggplot() + 
   geom_polygon(data = chloro_df, 
-               aes(x = long.x, y = lat.x, group = group.x, fill = Pct_ED),
-               color = "white", size = 0.25) +
+               aes(x = long, y = lat, group = group, fill = Pct_ED),
+               color = "black", size = 0.25) +
                coord_map() +
                scale_fill_distiller(name="Percent", palette = "YlGn") +
                theme_nothing(legend = TRUE) +
                labs(title = "% of Economically Disadvantaged Students")
 
-TN_map
+TN_ED_chloro <- plotly::ggplotly(TN_map, width = 1000, height = 400) 
+  
+TN_ED_chloro
+
+## Switching to AGI data
+
+agi_chloro_df <- zip_total %>% 
+  filter(is.na(agi_range)) %>% 
+  mutate(avg_agi = (agi_a * 1000)/return_c) %>% 
+  select(CORE_region, system_name, county, avg_agi) %>%
+  group_by(county) %>% 
+  summarise_all(funs(mean)) %>% 
+  filter(!is.na(county))
+
+## Filter data to just include TN
+
+agi_chloro_df$county_l <- sapply(agi_chloro_df$county, tolower) %>% 
+  gsub(' county','', .)
+
+## Left join to merge polygon and county data
+
+agi_chloro_df <- left_join(x = TN_counties, y = agi_chloro_df, by = c("subregion" = "county_l"))
+
+## Create map
+
+TN_agi_map <- ggplot() + 
+  geom_polygon(data = agi_chloro_df, 
+               aes(x = long, y = lat, group = group, fill = avg_agi),
+               text = c("County Name: ", county),
+               color = "white", size = 0.25) +
+  coord_map() +
+  scale_fill_distiller(name="Average AGI", palette = "YlGn") +
+  theme_nothing(legend = TRUE) +
+  labs(title = "Average AGI")
+
+TN_agi_chloro <- plotly::ggplotly(TN_agi_map, width = 1000, height = 400) 
+TN_agi_chloro
+TN_maps <- subplot(TN_ED_chloro, TN_agi_chloro, widths = 1000, heights = 400)
+TN_maps

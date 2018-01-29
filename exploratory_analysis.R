@@ -69,24 +69,34 @@ ggplot(subjects_df, aes(x = BioI, y = Pct_ED)) +
 
 
 ## Avg by_agi_range to show mean AGI and graduation rates by zip, including CORE region
-agi_grad_plot <- by_agi_range %>% 
-  filter(agi_a > 0,
-         !is.na(Graduation)) %>% 
+agi_grad_df <- merged_df %>% 
+  filter(is.na(agi_range) & !is.na(zip_code)) %>% 
   mutate(avg_agi = (agi_a * 1000) / return_c) %>% 
   group_by(zip_code) %>% 
   summarise(mean_agi = mean(avg_agi),
-            mean_grad = mean(Graduation)) %>% 
-  left_join(by_agi_range[c("zip_code", "CORE_region")], by = "zip_code") %>% 
+            mean_grad = mean(Graduation))
+
+ core_zip<- merged_df %>% 
+  filter(is.na(agi_range) & !is.na(zip_code)) %>% 
+   select(zip_code, CORE_region, system_name)
+
+agi_grad_plot <- agi_grad_df %>% 
+  left_join(core_zip[c("zip_code", "CORE_region", "system_name")], by = "zip_code") %>% 
   filter(!is.na(CORE_region))
 
-## Scatter
-ggplot(agi_grad_plot, aes(x = mean_agi, y = mean_grad, color = CORE_region)) +
- geom_point(alpha = 0.5)
-
 ## Boxplot
-ggplot(agi_grad_plot, aes(x = CORE_region, y = mean_grad)) +
-  geom_boxplot()
 
+grad_box_plot<- plot_ly(agi_grad_plot, y = (~mean_grad), x = ~CORE_region, color = ~CORE_region,
+                    type = "scatter",
+                    mode = "markers",
+                    alpha = 0.3,
+                    text = ~paste('Zip Code: ', zip_code,
+                                  '<br> System Name: ', system_name),
+                    x_lab("CORE Region"),
+                    y_lab("Graduation Rate")) %>% 
+              add_trace(agi_grad_plot, y = ~mean_grad, color = ~CORE_region, type = "box") %>% 
+
+grad_box_plot
 ## Southwest/Memphis CORE shows a wide variation in graduation rates, so exploring further
 southwest_core <- by_agi_range %>%
   filter(CORE_region == "Southwest/Memphis CORE") %>% 
