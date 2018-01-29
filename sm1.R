@@ -10,6 +10,8 @@ library(ggplot2)
 library(corrplot)
 library(GGally)
 library(ggcorrplot)
+library(PerformanceAnalytics)
+library(MASS)
 #read the data from the dowloads had to redo as editing the column names in xcel  converted the 
 #numeric values to character values
 
@@ -90,6 +92,17 @@ mem <- filter(school_mem2015, grade %in% c("9", "10", "11", "12"))
 pairs(~Graduation + Dropout + Per_Pupil_Expenditures, data=school)
 pairs(~ELA + Math + Science + ACT_Composite + Per_Pupil_Expenditures, data = school)
 mem <- filter(school_mem2015, grade %in% c("9", "10", "11", "12"))
+
+mem_grade<- mem%>%
+  group_by(grade)
+ggplot(mem_grade, aes(x = gender, y = enrollment)) +
+  geom_col()
+ggplot(mem_grade, aes(x = race_or_ethnicity, y = enrollment, 
+                      color = race_or_ethnicity)) +
+         geom_col() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  xlab("") + ylab("Number of Enrollment") +
+  ggtitle("Ethnic Representation of Student body across TN High Schools")
 
 
 library(PerformanceAnalytics)
@@ -205,10 +218,135 @@ plot(sc_cr2$mean_enrol, sc_cr2$mean_grad,
 points(sc_cr2$mean_enrol, sc_cr2$mean_composite, 
        pch = 16, col = 'blue')
 abline(a = 0, b = 1, lty = 2)
-
+##finding relation in core region and agi
 ggplot(merged2, aes(x= CORE_region, y = agi, 
        color = CORE_region, size = irs_estimated_population_2014)) + 
   geom_point() +
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
   xlab("") + ylab("Income per return")
+##finding relation between the core and population and grad
+ggplot(merged2, aes(x= CORE_region, y = irs_estimated_population_2014, 
+                    color = Pct_ED, size = Per_Pupil_Expenditures)) + 
+  geom_point() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  xlab("") + ylab("Population")
+
+#relation between 
+ggplot(merged2, aes(x = CORE_region, y = Graduation)) +
+  geom_boxplot() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  xlab("") + ylab("Percent Graduation")
+#putting races
+plot(merged2$CORE_region, merged2$Pct_Chronically_Absent, 
+     pch = 17, col = 'red', ylim = c(0, 100))
+points(merged2$CORE_region, merged2$Pct_BHN, 
+       pch = 16, col = 'blue') 
+theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  xlab("") + ylab("Pct_Absent/Pct_BHN")
+
+mem_school <- left_join(mem, school_crosswalk, 
+                        by = c("district_name" = "County Name"))
+
+ggplot(mem_school, aes(x = CORE_region, y = Graduation, 
+                       color = gender, size = enrollment)) +
+  geom_point() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+
+#removing all gender from the mem_school
+mem2<- subset(mem_school, gender!="All Genders")
+mem3 <- subset(mem2, race_or_ethnicity!= "All Race/Ethnic Groups")
+ggplot(mem3, aes(x= CORE_region, y = enrollment, 
+                 color = gender)) +
+  geom_boxplot() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))+
+  xlab("") + ylab("Number Enrolled") 
+
+ggplot(mem3, aes(x= CORE_region, y = enrollment, 
+                 color = race_or_ethnicity)) +
+  geom_boxplot() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))+
+  xlab("") + ylab("Number Enrolled") + ggtitle("Ethnic distribution in High School 
+                                               across TN core region")
+
+ggplot(mem3, aes(x= race_or_ethnicity, y = enrollment, 
+                 color = CORE_region)) +
+  geom_boxplot() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))+
+  xlab("") + ylab("Number Enrolled") + ggtitle("Ethnic distribution in High School 
+                                               across TN core region")
+ggplot(mem3, aes(x= race_or_ethnicity, y = Graduation, 
+                 color = CORE_region)) +
+  geom_boxplot() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))+
+  xlab("") + ylab("Graduation") + ggtitle("Ethnic distribution and Graduation in High School 
+                                               across TN core region")
+ggplot(mem3, aes(x= CORE_region, y = Graduation, 
+                 color = race_or_ethnicity)) +
+  geom_boxplot() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))+
+  xlab("") + ylab("Percent Graduation") + ggtitle("Graduation and Ethnicity in High School 
+                                               across TN core region")
+
+ggplot(mem3, aes(x= CORE_region, y = ACT_Composite, 
+                 color = gender)) +
+  geom_boxplot() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))+
+  xlab("") + ylab("ACT_Composite") + ggtitle("ACT scores between Male and Female students in High School 
+                                                  across TN core region")
+
+ggplot(mem3, aes(x= CORE_region, y = ACT_Composite, 
+                 color = race_or_ethnicity)) +
+  geom_boxplot() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))+
+  xlab("") + ylab("ACT_Composite") + ggtitle("ACT scores distribution and ethnic orientation 
+                                                  of students across TN core region")
+
+header <- merged2[0, ]
+chart.Correlation(merged2[, c(2:6, 10 ,16)], histogram = TRUE, pch=".")
+chart.Correlation(merged2[, c(2, 56, 52)], histogram = TRUE, pch=".")
+
+chart.Correlation(merged2[, c(2, 56, 44:46, 49)], histogram = TRUE, pch=".")
+
+chart.Correlation(merged2[, c(2, 43, 50 ,56, 49)], histogram = TRUE, pch=".")
+
+ggplot(merged2, aes(x = ACT_Composite, y = agi, 
+                    color = CORE_region, size = Per_Pupil_Expenditures)) +
+  geom_col() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))+
+  xlab("ACT_Composite") + ylab("AGI")
+merged3 <- subset(merged2, ACT_Composite != 0)
+ggplot(merged3, aes(x = ACT_Composite, y = agi, 
+                    color = CORE_region)) +
+  geom_point() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))+
+  xlab("ACT_Composite") + ylab("AGI") +
+  coord_flip()
+
+
+ggplot(merged3, aes(x = Per_Pupil_Expenditures, y = agi, 
+                    color = CORE_region)) +
+  geom_point() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))+
+  xlab("Per Pupil Expenditure") + ylab("AGI") +
+  coord_flip()
+
+mer4<- merged3%>%
+  group_by(CORE_region)%>%
+  mutate(AGI = mean(agi),
+         Expense = mean(Per_Pupil_Expenditures),
+         ACT = mean(ACT_Composite),
+         PCT_Graduation = mean(Graduation))
+
+ggplot(mer4, aes(x = AGI, y = ACT, 
+                    color = CORE_region, size = Expense)) +
+  geom_point() 
+ggplot(mer4, aes(x = PCT_Graduation, y = ACT, 
+                 color = CORE_region, size = Expense)) +
+  geom_point()  
+
+library(GGally)
+ggcorr(merged2)
+ggcorr(school)
+ggcorr(totaltax)
 #testing commit for branch
