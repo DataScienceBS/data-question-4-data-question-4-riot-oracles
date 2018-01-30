@@ -124,6 +124,18 @@ $(document).ready(function () {
 
 </div>
 
+<div id="TOC">
+<ul>
+<li><a href="#data-and-approach">Data and Approach</a></li>
+<li><a href="#our-observations">Our Observations</a></li>
+<li><a href="#including-plots">Including Plots</a></li>
+<li><a href="#grades-matter">Grades Matter!</a></li>
+<li><a href="#sources-cited">Sources Cited</a><ul>
+<li><a href="#packages-used">Packages Used</a></li>
+<li><a href="#data-links">Data Links</a></li>
+</ul></li>
+</ul>
+</div>
 
 <div id="data-and-approach" class="section level3">
 <h3>Data and Approach</h3>
@@ -131,19 +143,54 @@ $(document).ready(function () {
 </div>
 <div id="our-observations" class="section level3">
 <h3>Our Observations</h3>
+<p>Need to plug in boxplot interpretation……<br />
+Southwest Memphis Core seems to have more variation in ACT Composite scores than any other region in the state.</p>
 </div>
-<div id="including-plots" class="section level2">
-<h2>Including Plots</h2>
-<p>You can also embed plots, for example:</p>
-<p>Note that the <code>echo = FALSE</code> parameter was added to the code chunk to prevent printing of the R code that generated the plot.</p>
-<div id="sources-cited" class="section level3">
-<h3>Sources Cited</h3>
-<p>Packages Used * ggplot2<br />
-* dplyr<br />
-* tidyr<br />
-* PerformanceAnalytics<br />
-* maps<br />
-* mapdata</p>
+<div id="including-plots" class="section level3">
+<h3>Including Plots</h3>
+</div>
+<div id="grades-matter" class="section level3">
+<h3>Grades Matter!</h3>
+<p>Using data from the state achievement scores, we were able to accurately predict the average ACT scores for a county given the proficiency rates of four key subject categories: <strong>Algebra I</strong>, <strong>Chemistry</strong>, <strong>Math</strong>, and <strong>ELA</strong>. Using DeKalb County as a test county, we trained a prediction model on the other 94 counties in Tennessee and we able to predict DeKalb’s ACT Composite score of 19.1.<br />
+<em>lm(formula = ACT_Composite ~ AlgI + Chemistry + Math + ELA, data = school_cross_no_dekalb_no_outliers)</em></p>
+</div>
+<div id="sources-cited" class="section level2">
+<h2>Sources Cited</h2>
+<div id="packages-used" class="section level3">
+<h3>Packages Used</h3>
+<ul>
+<li>readxl<br />
+</li>
+<li>ggplot2<br />
+</li>
+<li>knitr<br />
+</li>
+<li>dplyr<br />
+</li>
+<li>tidyr<br />
+</li>
+<li>PerformanceAnalytics<br />
+</li>
+<li>maps<br />
+</li>
+<li>mapdata<br />
+</li>
+<li>mapproj<br />
+</li>
+<li>ggmap</li>
+</ul>
+</div>
+<div id="data-links" class="section level3">
+<h3>Data Links</h3>
+<ul>
+<li><a href="https://www.irs.gov/statistics/soi-tax-stats-individual-income-tax-statistics-zip-code-data-soi">IRS Sales Tax Data</a><br />
+</li>
+<li><a href="https://www.tn.gov/education/data/data-downloads.html">School Achievement Data</a><br />
+</li>
+<li><a href="https://www.tn.gov/education/data/data-downloads.html">Crosswalk, Zip to District</a><br />
+</li>
+<li><a href="https://www.tn.gov/content/dam/tn/education/data/data_definitions.pdf">Department of Education, Data Definitions</a></li>
+</ul>
 </div>
 </div>
 

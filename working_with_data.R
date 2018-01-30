@@ -97,14 +97,16 @@ color_df <- school_cross %>%
 color_df$county_l <- sapply(color_df$County_Name, tolower) %>% gsub(' county','',.)
 color_df <- left_join(x = TN_counties, y = color_df, by = c("subregion" = "county_l"))
 
+library(ggmap)
 library(mapproj)
+
 TN_map <- ggplot() +
   geom_polygon(data = color_df,
                aes(x = long, y = lat, group = group, fill = Average_ACT_Composite),
                color = "white", size = 0.25) +
   coord_map() +
   scale_fill_distiller(name="ACT Scores", palette = "YlGn") +
-#  theme_nothing(legend = TRUE) +
+  theme_nothing(legend = TRUE) +
   labs(title = "Average ACT Composite Scores by County")
 ############ testing other map options ############
 

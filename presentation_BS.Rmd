@@ -3,7 +3,8 @@ title: "Riot Oracles"
 author: "Justin, Smita, and Brandon"
 date: "2/3/2018"
 output:
-    html_document: default
+    html_document:
+      toc: true
 ---
 
 ```{r reading_data, include=FALSE}
@@ -16,6 +17,13 @@ school_cross <- readRDS("school_cross.RDS")
 ```{r libraries, include=FALSE}
 library(ggplot2)
 library(dplyr)
+library(knitr)
+library(tidyr)
+library(PerformanceAnalytics)  
+library(maps)
+library(mapdata)
+library(mapproj) 
+library(ggmap)
 ```
 
 ### Data and Approach
@@ -23,32 +31,72 @@ We used IRS tax data for the state of Tennessee to review income levels by zip c
 
 
 ### Our Observations
-Need to plug in boxplot interpretation......
+Need to plug in boxplot interpretation......  
+Southwest Memphis Core seems to have more variation in ACT Composite scores than any other region in the state. 
 
 ```{r act_by_core, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 combined_df %>% 
   filter(zip_code != 0 | zip_code != 99999) %>% 
   filter(agi_range != 'Total') %>% 
   filter(CORE_region != 'NA') %>% 
+  filter(ACT_Composite != 'NA') %>% 
   ggplot(., aes(x=CORE_region, y=ACT_Composite)) +
   geom_boxplot() +
   theme(axis.text.x = element_text(angle = 60, hjust = 1))
 
 ```
 
-## Including Plots
+### Including Plots  
 
 
-```{r ACT by County, echo=FALSE}
+```{r ACT_county_map, include=FALSE}
 #plot(goes here)
 # need to clean - dekalb = DeKalb
 # consolidate code for Rmd
+library(maps)
+library(mapdata)  #preloaded state/county coordinates
+
+TN_data <- map_data("state") %>% 
+  filter(region =='tennessee')
+TN_counties <- map_data("county") %>% subset(., region == "tennessee")
+TN_counties$subregion[TN_counties$subregion=='de kalb'] <- "dekalb"
+combined_df$county_l <- sapply(combined_df$county, tolower) %>% gsub(' county','',.)
+tax_school_map_df <- left_join(combined_df, TN_counties, by=c('county_l'='subregion')) 
+
+color_df <- school_cross %>%
+  select(CORE_region, County_Name, Enrollment, Per_Pupil_Expenditures, ACT_Composite) %>%
+  group_by(County_Name) %>%
+  summarise(Average_ACT_Composite = mean(ACT_Composite, na.rm = TRUE),
+            Total_Per_Pupil_Expenditure = sum(Per_Pupil_Expenditures, na.rm = TRUE),
+            Total_Enrollment  = sum(Enrollment, na.rm = TRUE),
+            Avg_Per_Pupil_Exp = Total_Enrollment/Total_Per_Pupil_Expenditure)
+
+color_df$county_l <- sapply(color_df$County_Name, tolower) %>% gsub(' county','',.)
+color_df <- left_join(x = TN_counties, y = color_df, by = c("subregion" = "county_l"))
+
+TN_map <- ggplot() +
+  geom_polygon(data = color_df,
+               aes(x = long, y = lat, group = group, fill = Average_ACT_Composite),
+               color = "white", size = 0.25) +
+  coord_map() +
+  scale_fill_distiller(name="ACT Scores", palette = "YlGn") +
+  theme_nothing(legend = TRUE) +
+  labs(title = "Average ACT Composite Scores by County")
 ```
 
+```{r ACT_map, echo=TRUE}
+TN_map
+```
+
+### Grades Matter!   
+
+Using data from the state achievement scores, we were able to accurately predict the average ACT scores for a county given the proficiency rates of four key subject categories: **Algebra I**, **Chemistry**, **Math**, and **ELA**. Using DeKalb County as a test county, we trained a prediction model on the other 94 counties in Tennessee and we able to predict DeKalb's ACT Composite score of 19.1.  
+_lm(formula = ACT_Composite ~ AlgI + Chemistry + Math + ELA, data = school_cross_no_dekalb_no_outliers)_  
 
 
-### Sources Cited
-Packages Used
+## Sources Cited
+
+### Packages Used
 *  readxl  
 *  ggplot2  
 *  knitr  
@@ -58,7 +106,10 @@ Packages Used
 *  maps  
 *  mapdata  
 *  mapproj  
+*  ggmap  
 
- 
-consider including links to the data, and links to supporting websites for mapdata?
-
+### Data Links  
+*  [IRS Sales Tax Data](https://www.irs.gov/statistics/soi-tax-stats-individual-income-tax-statistics-zip-code-data-soi)    
+*  [School Achievement Data](https://www.tn.gov/education/data/data-downloads.html)   
+*  [Crosswalk, Zip to District](https://www.tn.gov/education/data/data-downloads.html)  
+*  [Department of Education, Data Definitions](https://www.tn.gov/content/dam/tn/education/data/data_definitions.pdf)  
