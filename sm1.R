@@ -349,4 +349,43 @@ library(GGally)
 ggcorr(merged2)
 ggcorr(school)
 ggcorr(totaltax)
+
+plot(merged2$agi, merged2$wage)
+
+
+library(maps)
+library(mapdata)
+library(ggmap)#preloaded state/county coordinates
+
+TN_data <- map_data("state") %>% 
+  filter(region =='tennessee')
+
+TN_counties <- map_data("county") %>% subset(., region == "tennessee")
+
+ggplot() + geom_polygon(data = TN_counties, aes(x=long, y = lat, group = group), 
+                        fill = NA, color = "red") + 
+  coord_fixed(1.3) 
+
+
+
+
+
+ggplot() + geom_polygon(data = merged2, aes(x=longitude, y = latitude, group = county), 
+                        fill = NA, color = "red") +
+  coord_fixed(1.3)
+
+##geom_polygon(data = TN_counties, fill = "orange", color = "white") 
++  
+  
+##geom_polygon(color = "black", fill = NA)
+
+TN_map <- ggplot(data = TN_data, mapping = aes(x = long, y = lat, group = group)) + 
+  coord_fixed(1.3) +  
+  geom_polygon(data = TN_counties, fill = "orange", color = "white") +  
+  geom_polygon(color = "black", fill = NA) 
+
+
+merged3$county <- sapply(merged3$county, tolower)%>%
+  gsub("county", "", .)
+
 #testing commit for branch
