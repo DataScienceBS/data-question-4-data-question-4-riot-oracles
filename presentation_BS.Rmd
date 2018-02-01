@@ -26,15 +26,15 @@ library(mapproj)
 library(ggmap)
 ```
 
-### Data and Approach
+## Data and Approach
 We used IRS tax data for the state of Tennessee to review income levels by zip code, along with other financial variables, to find correlation with county level school data. We analyzed school and tax data separately, as well as their influence on each other. The data sources for our research have been included in our [Sources Cited](#sources-cited). 
 
 
-### Our Observations
+## Our Observations
 Need to plug in boxplot interpretation......  
 Southwest Memphis Core seems to have more variation in ACT Composite scores than any other region in the state. 
 
-```{r act_by_core, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+```{r act_by_core, echo=TRUE, message=FALSE, warning=FALSE, paged.print=FALSE}
 combined_df %>% 
   filter(zip_code != 0 | zip_code != 99999) %>% 
   filter(agi_range != 'Total') %>% 
@@ -50,29 +50,10 @@ combined_df %>%
 
 
 ```{r ACT_county_map, include=FALSE}
-#plot(goes here)
-# need to clean - dekalb = DeKalb
-# consolidate code for Rmd
 library(maps)
 library(mapdata)  #preloaded state/county coordinates
+color_df <- readRDS("color_df.RDS")
 
-TN_data <- map_data("state") %>% 
-  filter(region =='tennessee')
-TN_counties <- map_data("county") %>% subset(., region == "tennessee")
-TN_counties$subregion[TN_counties$subregion=='de kalb'] <- "dekalb"
-combined_df$county_l <- sapply(combined_df$county, tolower) %>% gsub(' county','',.)
-tax_school_map_df <- left_join(combined_df, TN_counties, by=c('county_l'='subregion')) 
-
-color_df <- school_cross %>%
-  select(CORE_region, County_Name, Enrollment, Per_Pupil_Expenditures, ACT_Composite) %>%
-  group_by(County_Name) %>%
-  summarise(Average_ACT_Composite = mean(ACT_Composite, na.rm = TRUE),
-            Total_Per_Pupil_Expenditure = sum(Per_Pupil_Expenditures, na.rm = TRUE),
-            Total_Enrollment  = sum(Enrollment, na.rm = TRUE),
-            Avg_Per_Pupil_Exp = Total_Enrollment/Total_Per_Pupil_Expenditure)
-
-color_df$county_l <- sapply(color_df$County_Name, tolower) %>% gsub(' county','',.)
-color_df <- left_join(x = TN_counties, y = color_df, by = c("subregion" = "county_l"))
 
 TN_map <- ggplot() +
   geom_polygon(data = color_df,

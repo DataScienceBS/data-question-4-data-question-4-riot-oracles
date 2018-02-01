@@ -67,6 +67,7 @@ TN_data <- map_data("state") %>%
   filter(region =='tennessee')
 
 TN_counties <- map_data("county") %>% subset(., region == "tennessee")
+TN_counties$subregion[TN_counties$subregion=='de kalb'] <- "dekalb"
 
 
 ##########################################
@@ -100,6 +101,8 @@ color_df <- left_join(x = TN_counties, y = color_df, by = c("subregion" = "count
 library(ggmap)
 library(mapproj)
 
+saveRDS(color_df, file="color_df.RDS")
+
 TN_map <- ggplot() +
   geom_polygon(data = color_df,
                aes(x = long, y = lat, group = group, fill = Average_ACT_Composite),
@@ -108,11 +111,6 @@ TN_map <- ggplot() +
   scale_fill_distiller(name="ACT Scores", palette = "YlGn") +
   theme_nothing(legend = TRUE) +
   labs(title = "Average ACT Composite Scores by County")
-############ testing other map options ############
-
-
-
-
 
 
 
