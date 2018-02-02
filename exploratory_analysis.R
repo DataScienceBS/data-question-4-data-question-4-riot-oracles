@@ -1,7 +1,7 @@
 library(ggplot2)
 library(dplyr)
 
-load("data/merged_df.rds")
+merged_df <- load("data/merged_df.rds")
 
 ## Filtering df to show the agi range for each zip code
 by_agi_range <- merged_df %>% 
@@ -85,73 +85,23 @@ agi_grad_plot <- agi_grad_df %>%
   filter(!is.na(CORE_region))
 
 ## Boxplot
-
+x_grad <- list(title = "", showticklabels = FALSE)
+y_grad <- list(title = "Graduation Rate")
+  
 grad_box_plot<- plot_ly(agi_grad_plot, y = (~mean_grad), x = ~CORE_region, color = ~CORE_region,
                     type = "scatter",
                     mode = "markers",
                     alpha = 0.3,
                     text = ~paste('Zip Code: ', zip_code,
-                                  '<br> System Name: ', system_name),
-                    x_lab("CORE Region"),
-                    y_lab("Graduation Rate")) %>% 
-              add_trace(agi_grad_plot, y = ~mean_grad, color = ~CORE_region, type = "box") %>% 
+                                  '<br> System Name: ', system_name)) %>% 
+                    layout(xaxis = x_grad, yaxis = y_grad, legend = list(orientation = 'h')) %>% 
+                    add_trace(agi_grad_plot, y = ~mean_grad, color = ~CORE_region, type = "box")
 
 grad_box_plot
-## Southwest/Memphis CORE shows a wide variation in graduation rates, so exploring further
-southwest_core <- by_agi_range %>%
-  filter(CORE_region == "Southwest/Memphis CORE") %>% 
-  mutate(avg_agi = (agi_a * 1000) / return_c) %>% 
-  group_by(zip_code) %>% 
-  summarise(mean_agi = mean(avg_agi),
-            mean_grad = mean(Graduation))
-
-# ggplot(southwest_core, aes(x = mean_grad, y = mean_agi)) +
-#   geom_point(alpha = 0.5)
-
-## Math vs Science
-courses <- c("AlgI", "AlgII", "Biol", "Chemistry", "ELA", "EngI",
-             "EngII", "EngIII", "Math", "Science")
-
-overall_score <- by_agi_range %>% 
-  filter(!is.na(AlgI |  AlgII |  BioI |  Chemistry |  ELA |  EngI | 
-                  EngII |  EngIII |  Math |  Science)) %>% 
-  group_by(zip_code) %>%
-  summarise(mean_chr_absent = mean(Pct_Chronically_Absent),
-            mean_algI = mean(AlgI),
-            mean_algII = mean(AlgII),
-            mean_math = mean(Math),
-            mean_bioI = mean(BioI),
-            mean_chemistry = mean(Chemistry),
-            mean_science = mean(Science),
-            mean_ela = mean(ELA),
-            mean_engI = mean(EngI),
-            mean_engII = mean(EngII),
-            mean_engIII = mean(EngIII)
-            )
-
-# ## Function that doesn't work, sadly.
-# score_plot <- function(df, score1, score2) {
-#   ggplot(df, aes(x = score1, y = score2)) +
-#   geom_point(alpha = 0.5)
-# }
-# 
-# ## Function calls that failed
-# mean_algI <- score_plot(overall_score, mean_algI, mean_chr_absent)
-# mean_algII <- score_plot(overall_score, mean_algII, mean_chr_absent)
-# mean_math <- score_plot(overall_score, mean_math, mean_chr_absent)
-# mean_bioI <- score_plot(overall_score, mean_bioI, mean_chr_absent)
-# mean_chemistry <- score_plot(overall_score, mean_chemistry, mean_chr_absent)
-# mean_science <- score_plot(overall_score, mean_science, mean_chr_absent)
-# mean_ela <- score_plot(overall_score, mean_ela, mean_chr_absent)
-# mean_engI <- score_plot(overall_score, mean_engI, mean_chr_absent)
-# mean_engII <- score_plot(overall_score, mean_engII, mean_chr_absent)
-# mean_engIII <- score_plot(overall_score, mean_engIII, mean_chr_absent)
-# 
-# ggplot(overall_score, aes(x = mean_algI, y = mean_chr_absent)) +
-#   geom_point(alpha = 0.5)
-# ggplot(overall_score, aes(x = mean_algII, y = mean_chr_absent)) +
-#   geom_point(alpha = 0.5)
-# ggplot(overall_score, aes(x = mean_math, y = mean_chr_absent)) +
-#   geom_point(alpha = 0.5)
 
 
+## Subject plot
+
+ed_df <- reshape2::melt(subjects_df, id = c('CORE_region', 'system_name', 'Pct_ED'))
+names(ed_df) <- c("CORE_region", "system_name", "Pct_ED", "Subject", "Pct_proficient")
+  

@@ -114,14 +114,19 @@ agi_chloro_df <- left_join(x = TN_counties, y = agi_chloro_df, by = c("subregion
 TN_agi_map <- ggplot() + 
   geom_polygon(data = agi_chloro_df, 
                aes(x = long, y = lat, group = group, fill = avg_agi),
-               text = c("County Name: ", county),
                color = "white", size = 0.25) +
   coord_map() +
-  scale_fill_distiller(name="Average AGI", palette = "YlGn") +
+  scale_fill_distiller(name = "Average AGI", palette = "YlGn") +
   theme_nothing(legend = TRUE) +
-  labs(title = "Average AGI")
+  labs(title = "Average AGI") +
+  theme(plot.title = element_text(hjust = 0.5)) 
 
-TN_agi_chloro <- plotly::ggplotly(TN_agi_map, width = 1000, height = 400) 
-TN_agi_chloro
-TN_maps <- subplot(TN_ED_chloro, TN_agi_chloro, widths = 1000, heights = 400)
-TN_maps
+TN_ed_map <- ggplot() + 
+  geom_polygon(data = chloro_df, 
+               aes(x = long, y = lat, group = group, fill = Pct_ED),
+               color = "white", size = 0.25) +
+  coord_map() +
+  scale_fill_distiller(name = "Percent ED", palette = "YlGn", trans = "reverse") +
+  theme_nothing(legend = TRUE) +
+  labs(title = "% of Economically Disadvantaged Students") +
+  theme(plot.title = element_text(hjust = 0.5))

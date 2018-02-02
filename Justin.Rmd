@@ -1,0 +1,187 @@
+---
+title: "Justin"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+merged_df <- readRDS("data/merged_df.rds")
+library(dplyr)
+library(plotly)
+library(maps)
+library(mapdata)
+library(mapproj)
+library(ggmap)
+library(ggplot2)
+```
+
+```{r box_data, echo = FALSE}
+
+## Avg by_agi_range to show mean AGI and graduation rates by zip, including CORE region
+agi_grad_df <- merged_df %>%
+  filter(is.na(agi_range) & !is.na(zip_code)) %>%
+  mutate(avg_agi = (agi_a * 1000) / return_c) %>%
+  group_by(zip_code) %>%
+  summarise(mean_agi = mean(avg_agi),
+            mean_grad = mean(Graduation))
+
+core_zip<- merged_df %>%
+  filter(is.na(agi_range) & !is.na(zip_code)) %>%
+  select(zip_code, CORE_region, system_name)
+
+agi_grad_plot <- agi_grad_df %>%
+  left_join(core_zip[c("zip_code", "CORE_region", "system_name")], by = "zip_code") %>%
+  filter(!is.na(CORE_region))
+```
+ 
+## Graduation Rates by Region 
+
+
+The boxplot below shows that, while most CORE regions in TN have a graduation rate around **90%**, we have some outliers in the Northwest and South Central regions.
+
+The outlier in the Northwest region is *Humboldt City*, with a graduation rate of **68.5%**. This school system stands out in other troubling ways, which will be visited again later.
+
+```{r boxplot, echo=FALSE, warning=FALSE}
+
+## Boxplot
+x_grad <- list(title = "", showticklabels = FALSE)
+y_grad <- list(title = "Graduation Rate")
+
+grad_box_plot<- plot_ly(agi_grad_plot, y = (~mean_grad), x = ~CORE_region, color = ~CORE_region,
+                        type = "scatter",
+                        mode = "markers",
+                        alpha = 0.3,
+                        text = ~paste('Zip Code: ', zip_code,
+                                      '<br> System Name: ', system_name)) %>%
+  layout(xaxis = x_grad, yaxis = y_grad, legend = list(orientation = 'h')) %>%
+  add_trace(agi_grad_plot, y = ~mean_grad, color = ~CORE_region, type = "box")
+
+grad_box_plot
+```
+As expected, a higher income from a particular county *does* result in a lower percentage of students that qualify as **"Economically Disadvantaged"** - students that qualified for free or reduced lunches.
+```{r echo = FALSE, warning = FALSE}
+# Cloropleth
+
+## Total across zip code - removes agi ranges
+zip_total <- merged_df %>% 
+  filter(zip_code != 0 & is.na(agi_range))
+
+## Filtering and summarising subject proficiency
+chloro_df <- zip_total %>% 
+  filter(is.na(agi_range)) %>% 
+  select(CORE_region, system_name, county, Pct_ED, AlgI, AlgII, Math, 
+         BioI, Chemistry, Science, ACT_Composite) %>%
+  group_by(county) %>% 
+  summarise_all(funs(mean)) %>% 
+  filter(!is.na(county))
+
+## Filter data to just include TN
+
+TN_data <- map_data("state") %>% 
+  filter(region =='tennessee')
+
+TN_counties <- map_data("county") %>% 
+  subset(., region == "tennessee")
+
+TN_counties$subregion <- TN_counties$subregion %>% 
+  gsub('de kalb', 'dekalb', .)
+
+chloro_df$county_l <- sapply(chloro_df$county, tolower) %>% 
+  gsub(' county','', .)
+
+## Left join to merge polygon and county data
+
+chloro_df <- left_join(x = TN_counties, y = chloro_df, by = c("subregion" = "county_l"))
+
+## Switching to AGI data
+
+agi_chloro_df <- zip_total %>% 
+  filter(is.na(agi_range)) %>% 
+  mutate(avg_agi = (agi_a * 1000)/return_c) %>% 
+  select(CORE_region, system_name, county, avg_agi) %>%
+  group_by(county) %>% 
+  summarise_all(funs(mean)) %>% 
+  filter(!is.na(county))
+
+## Filter data to just include TN
+
+agi_chloro_df$county_l <- sapply(agi_chloro_df$county, tolower) %>% 
+  gsub(' county','', .)
+
+## Left join to merge polygon and county data
+
+agi_chloro_df <- left_join(x = TN_counties, y = agi_chloro_df, by = c("subregion" = "county_l"))
+
+## Create maps
+
+TN_agi_map <- ggplot() + 
+  geom_polygon(data = agi_chloro_df, 
+               aes(x = long, y = lat, group = group, fill = avg_agi),
+               color = "white", size = 0.25) +
+  coord_map() +
+  scale_fill_distiller(name = "Average AGI", palette = "YlGn") +
+  theme_nothing(legend = TRUE) +
+  labs(title = "Average AGI") +
+  theme(plot.title = element_text(hjust = 0.5)) 
+
+TN_ed_map <- ggplot() + 
+  geom_polygon(data = chloro_df, 
+               aes(x = long, y = lat, group = group, fill = Pct_ED),
+               color = "white", size = 0.25) +
+  coord_map() +
+  scale_fill_distiller(name = "Percent ED", palette = "YlGn", trans = "reverse") +
+  theme_nothing(legend = TRUE) +
+  labs(title = "% of Economically Disadvantaged Students") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+TN_agi_map
+TN_ed_map
+```
+ 
+## Impact of Economic Disadvantage 
+
+In the plot below, we can see that the higher percentage of a student body that qualify for free or reduced lunches score lower in both Math and Science. 
+
+*Humboldt City* school system had **97.9%** of their students qualify for free or reduced lunches. Students in the Humboldt City school system had a **43.8%** and **38.4%** proficiency rate in Science and Math, respectively. As you might recall, *Humboldt City* also had one of the lowest graduation rates in TN, at **68.5%**.
+
+On the opposite side, *Lakeland City* reported a **14.7%** rate of Economically Disadvantaged students, while scoring **90.9%** and **88.2%** in Science and Math.
+
+
+```{r, echo = FALSE}
+
+## Total across zip code - removes agi ranges
+zip_total <- merged_df %>% 
+  filter(zip_code != 0 & is.na(agi_range))
+
+## Filtering and summarising subject proficiency
+subjects_df <- zip_total %>% 
+  select(CORE_region, system_name, Pct_ED, AlgI, AlgII, Math, 
+         BioI, Chemistry, Science) %>%
+  group_by(CORE_region,
+           system_name) %>% 
+  summarise_all(funs(mean)) %>% 
+  filter(!is.na(CORE_region))
+
+
+## Melting data into tidy
+ed_df <- reshape2::melt(subjects_df, id = c('CORE_region', 'system_name', 'Pct_ED'))
+names(ed_df) <- c("CORE_region", "system_name", "Pct_ED", "Subject", "Pct_proficient")
+
+ed_df <- ed_df %>% 
+          filter(Pct_proficient > 0, system_name != "Achievement School District",
+                 Subject == "Science" | Subject == "Math")
+
+x_prof <- list(title = "% Economically Disadvantaged")
+y_prof <- list(title = "Proficiency Rate")
+
+prof_ed_plot<- plot_ly(ed_df, y = (~Pct_proficient), x = ~Pct_ED, color = ~Subject,
+                        type = "scatter",
+                        mode = "markers",
+                        alpha = 0.7,
+                        text = ~paste('CORE Region: ', CORE_region,
+                                      '<br> School System: ', system_name,
+                                      '<br> Subject: ', Subject)) %>% 
+  layout(xaxis = x_prof, yaxis = y_prof, legend = list(orientation = 'v'))
+
+prof_ed_plot
+```
