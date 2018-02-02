@@ -21,42 +21,41 @@ tax2015 <- readxl::read_xls("data/tax2015.xls", range = "A6:DY4725")
 #### naming columns, using drop prefixes for pre-defined non-usable data to easily drop later ####
 
 names(tax2015) <- c('zip_code', 'agi_range', 'return_c', 'drop1', 'drop2', 'drop3', 'paid_prep', 
-               'exempt_c', 'depend_c', 'drop4', 'drop5', 'drop6', 'drop7', 'drop8', 'drop9', 
-               'drop10', 'agi_a', 'drop11', 'drop12', 'wage_c', 'wage_a', 'tax_int_c', 
-               'tax_int_a', 'div_c', 'div_a', 'drop13', 'drop14', 'drop15', 'drop16', 
-               'biz_inc_c', 'biz_inc_a', 'cap_gain_c', 'cap_gain_a', 'ira_c', 'ira_a', 
-               'pension_c', 'pension_a', 'farm_c', 'unemp_comp_c', 'unemp_comp_a', 'ss_ben_c',
-               'ss_ben_a', 'drop17', 'drop18', 'drop19', 'drop20', 'drop21', 'drop22',
-                'drop23', 'drop24', 'drop25', 'drop26', 'drop27', 'drop28', 'drop29', 'drop30',
-               'drop31', 'drop32', 'drop33', 'drop34', 'deductions_c', 'deductions_a', 'drop35', 'state_inc_tax_c',
-               'state_inc_tax_a', 'sales_tax_c', 'sales_tax_a', 'prop_tax_c', 'prop_tax_a', 
-               'drop36', 'drop37', 'mortgage_c', 'mortgage_a', 'contrib_c', 'contrib_a', 
-               'taxable_c', 'taxable_a', 'drop38', 'drop39', 'drop40', 'drop41', 'drop42', 
-               'drop43', 'credits_c', 'credits_a', 'drop44', 'drop45', 'drop46', 'drop47', 
-               'drop48', 'drop49', 'drop50', 'drop51', 'drop52', 'drop53', 'drop54', 'drop55', 
-               'drop56', 'drop57', 'drop58', 'drop59', 'drop60', 'drop61', 'drop62', 'drop63', 
-               'drop64', 'drop65', 'eic_c', 'eic_a', 'excess_eic_c', 'excess_eic_a', 'drop66',
-               'drop67', 'drop68', 'drop69', 'drop70', 'drop71', 'drop72', 'drop73', 
-               'tax_liab_c', 'tax_liab_a', 'drop74', 'drop75', 'drop76', 'drop77', 'tax_due_c',
-               'tax_due_a', 'refund_c', 'refund_a')
+                    'exempt_c', 'depend_c', 'drop4', 'drop5', 'drop6', 'drop7', 'drop8', 'drop9', 
+                    'drop10', 'agi_a', 'drop11', 'drop12', 'wage_c', 'wage_a', 'tax_int_c', 
+                    'tax_int_a', 'div_c', 'div_a', 'drop13', 'drop14', 'drop15', 'drop16', 
+                    'biz_inc_c', 'biz_inc_a', 'cap_gain_c', 'cap_gain_a', 'ira_c', 'ira_a', 
+                    'pension_c', 'pension_a', 'farm_c', 'unemp_comp_c', 'unemp_comp_a', 'ss_ben_c',
+                    'ss_ben_a', 'drop17', 'drop18', 'drop19', 'drop20', 'drop21', 'drop22',
+                    'drop23', 'drop24', 'drop25', 'drop26', 'drop27', 'drop28', 'drop29', 'drop30',
+                    'drop31', 'drop32', 'drop33', 'drop34', 'deductions_c', 'deductions_a', 'drop35', 'state_inc_tax_c',
+                    'state_inc_tax_a', 'sales_tax_c', 'sales_tax_a', 'prop_tax_c', 'prop_tax_a', 
+                    'drop36', 'drop37', 'mortgage_c', 'mortgage_a', 'contrib_c', 'contrib_a', 
+                    'taxable_c', 'taxable_a', 'drop38', 'drop39', 'drop40', 'drop41', 'drop42', 
+                    'drop43', 'credits_c', 'credits_a', 'drop44', 'drop45', 'drop46', 'drop47', 
+                    'drop48', 'drop49', 'drop50', 'drop51', 'drop52', 'drop53', 'drop54', 'drop55', 
+                    'drop56', 'drop57', 'drop58', 'drop59', 'drop60', 'drop61', 'drop62', 'drop63', 
+                    'drop64', 'drop65', 'eic_c', 'eic_a', 'excess_eic_c', 'excess_eic_a', 'drop66',
+                    'drop67', 'drop68', 'drop69', 'drop70', 'drop71', 'drop72', 'drop73', 
+                    'tax_liab_c', 'tax_liab_a', 'drop74', 'drop75', 'drop76', 'drop77', 'tax_due_c',
+                    'tax_due_a', 'refund_c', 'refund_a')
 
 tax2015a <- subset(tax2015, select = -c(drop1, drop2, drop3, drop4, drop5, drop6, drop7, drop8, drop9, 
-                             drop10, drop11, drop12, drop13, drop14, drop15, drop16, drop17, 
-                             drop18, drop19, drop20, drop21, drop22, drop23, drop24, drop25, 
-                             drop26, drop27, drop28, drop29, drop30, drop31, drop32, drop33, 
-                             drop34, drop35, drop36, drop37, drop38, drop39, drop40, drop41, 
-                             drop42, drop43, drop44, drop45, drop46, drop47, drop48, drop49, 
-                             drop50, drop51, drop52, drop53, drop54, drop55, drop56, drop57, 
-                             drop58, drop59, drop60, drop61, drop62, drop63, drop64, drop65, 
-                             drop66, drop67, drop68, drop69, drop70, drop71, drop72, drop73, 
-                             drop74, drop75, drop76, drop77))
+                                        drop10, drop11, drop12, drop13, drop14, drop15, drop16, drop17, 
+                                        drop18, drop19, drop20, drop21, drop22, drop23, drop24, drop25, 
+                                        drop26, drop27, drop28, drop29, drop30, drop31, drop32, drop33, 
+                                        drop34, drop35, drop36, drop37, drop38, drop39, drop40, drop41, 
+                                        drop42, drop43, drop44, drop45, drop46, drop47, drop48, drop49, 
+                                        drop50, drop51, drop52, drop53, drop54, drop55, drop56, drop57, 
+                                        drop58, drop59, drop60, drop61, drop62, drop63, drop64, drop65, 
+                                        drop66, drop67, drop68, drop69, drop70, drop71, drop72, drop73, 
+                                        drop74, drop75, drop76, drop77))
 View(tax2015a)
 
 #drop the rows in which all the col values is 0
 tax2015a <- tax2015a%>%
   drop_na(zip_code)
 View(tax2015a)
-
 
 
 #droping the value for the total tax for the zipcodes
@@ -66,7 +65,7 @@ tax2015b <- tax2015a%>%
 
 totaltax_zip <- tax2015a%>%
   filter(is.na(agi_range))
-  
+
 #to replace the na with 0 in tax2015b data
 tax2015b[is.na(tax2015b)]<- 0
 
@@ -83,7 +82,7 @@ View(zip_TNa)
 school <- read.csv("data/school_ach.csv")
 View(school)
 
-#read the garde gender county etc dat for school
+#read the grade gender county etc data for school
 school_mem2015 <- read_csv("data/data_2015_membership_school.csv")
 #county crosswalk dat to get the county names
 crosswalk <- read_xls("data/county_crosswalk.xls")
@@ -96,15 +95,30 @@ mem <- filter(school_mem2015, grade %in% c("9", "10", "11", "12"))
 
 mem_grade<- mem%>%
   group_by(grade)
+
 ggplot(mem_grade, aes(x = gender, y = enrollment)) +
-  geom_col()
+  geom_col() 
+ggplot(mem_grade, aes(x = gender, y = enrollment)) +
+  geom_boxplot() +
+  scale_y_log10() + ggtitle("Gender distribution in TN high schools" ) +
+  xlab("Gender") + ylab("Number of students enrolled (log scale)")
+
+
 ggplot(mem_grade, aes(x = race_or_ethnicity, y = enrollment, 
                       color = race_or_ethnicity)) +
-         geom_col() +
+  geom_boxplot() + scale_y_log10() +
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
-  xlab("") + ylab("Number of Enrollment") +
-  ggtitle("Ethnic Representation of Student body across TN High Schools")
+  xlab("") + ylab("Number of Enrollment(log scale)") +
+  ggtitle("Ethnic Representation of Student population across TN High Schools")
 
+mem_grade%>%
+  group_by(district_name) %>%
+  ggplot(aes(x = district_name, y = enrollment, 
+             color = race_or_ethnicity)) +
+  geom_boxplot() + scale_y_log10() + facet_wrap("grade") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  xlab("") + ylab("Number of Enrollment(log scale)") +
+  ggtitle("Ethnic Representation of Student population across TN High Schools")
 
 library(PerformanceAnalytics)
 chart.Correlation(school[, 3:6], histogram = TRUE, pch="+")
@@ -193,9 +207,9 @@ sc_cr2 <- sc_cr %>%
   mutate(left = sum(mean_exp, mean_dropout))
 #drop the row which is for all TN
 sc_cr2 <- sc_cr2[-9, ]
-  
+
 ggplot( sc_cr2, aes(x=mean_expense, y=mean_enrol, color = CORE_region)) + 
-          geom_point() + ggtitle("Comparing Enrollment to expense per pupil")
+  geom_point() + ggtitle("Comparing Enrollment to expense per pupil")
 ggplot( sc_cr2, aes(x=CORE_region, y=mean_grad, color = CORE_region)) + 
   geom_boxplot() + 
   ggtitle("Comparing Graduation rate across TN core region") +
@@ -221,7 +235,7 @@ points(sc_cr2$mean_enrol, sc_cr2$mean_composite,
 abline(a = 0, b = 1, lty = 2)
 ##finding relation in core region and agi
 ggplot(merged2, aes(x= CORE_region, y = agi, 
-       color = CORE_region, size = irs_estimated_population_2014)) + 
+                    color = CORE_region, size = irs_estimated_population_2014)) + 
   geom_point() +
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
   xlab("") + ylab("Income per return")
@@ -281,27 +295,27 @@ ggplot(mem3, aes(x= race_or_ethnicity, y = Graduation,
   geom_boxplot() +
   theme(axis.text.x = element_text(angle = 90, hjust = 1))+
   xlab("") + ylab("Graduation") + ggtitle("Ethnic distribution and Graduation in High School 
-                                               across TN core region")
+                                          across TN core region")
 ggplot(mem3, aes(x= CORE_region, y = Graduation, 
                  color = race_or_ethnicity)) +
   geom_boxplot() +
   theme(axis.text.x = element_text(angle = 90, hjust = 1))+
   xlab("") + ylab("Percent Graduation") + ggtitle("Graduation and Ethnicity in High School 
-                                               across TN core region")
+                                                  across TN core region")
 
 ggplot(mem3, aes(x= CORE_region, y = ACT_Composite, 
                  color = gender)) +
   geom_boxplot() +
   theme(axis.text.x = element_text(angle = 90, hjust = 1))+
   xlab("") + ylab("ACT_Composite") + ggtitle("ACT scores between Male and Female students in High School 
-                                                  across TN core region")
+                                             across TN core region")
 
 ggplot(mem3, aes(x= CORE_region, y = ACT_Composite, 
                  color = race_or_ethnicity)) +
   geom_boxplot() +
   theme(axis.text.x = element_text(angle = 90, hjust = 1))+
   xlab("") + ylab("ACT_Composite") + ggtitle("ACT scores distribution and ethnic orientation 
-                                                  of students across TN core region")
+                                             of students across TN core region")
 
 header <- merged2[0, ]
 chart.Correlation(merged2[, c(2:6, 10 ,16)], histogram = TRUE, pch=".")
@@ -340,7 +354,7 @@ mer4<- merged3%>%
          PCT_Graduation = mean(Graduation))
 
 ggplot(mer4, aes(x = AGI, y = ACT, 
-                    color = CORE_region, size = Expense)) +
+                 color = CORE_region, size = Expense)) +
   geom_point() 
 ggplot(mer4, aes(x = PCT_Graduation, y = ACT, 
                  color = CORE_region, size = Expense)) +
@@ -353,45 +367,4 @@ ggcorr(totaltax)
 
 plot(merged2$agi, merged2$wage)
 
-
-library(maps)
-library(mapdata)
-library(ggmap)#preloaded state/county coordinates
-
-TN_data <- map_data("state") %>% 
-  filter(region =='tennessee')
-
-TN_counties <- map_data("county") %>% subset(., region == "tennessee")
-
-ggplot() + geom_polygon(data = TN_counties, aes(x=long, y = lat, group = group), 
-                        fill = NA, color = "red") + 
-  coord_fixed(1.3) 
-
-
-
-
-
-ggplot() + geom_polygon(data = merged2, aes(x=longitude, y = latitude, group = county), 
-                        fill = NA, color = "red") +
-  coord_fixed(1.3)
-
-##geom_polygon(data = TN_counties, fill = "orange", color = "white") 
-+  
-  
-##geom_polygon(color = "black", fill = NA)
-
-TN_map <- ggplot(data = TN_data, mapping = aes(x = long, y = lat, group = group)) + 
-  coord_fixed(1.3) +  
-  geom_polygon(data = TN_counties, fill = "orange", color = "white") +  
-  geom_polygon(color = "black", fill = NA) 
-
-
-merged3$county <- sapply(merged3$county, tolower)%>%
-  gsub("county", "", .)
-TN_counties$subregion <- gsub("de kalb", "dekalb", TN_counties$subregion)
-mer3_county <- left_join(TN_counties, merged3, 
-                         by = c("subregion" = "county"))
-p <- ggplot(merged3, aes(x= factor(CORE_region), y = Graduation, 
-                         fill = factor(county)))
-p + geom_bar(stat = )
 #testing commit for branch

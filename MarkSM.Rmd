@@ -1,12 +1,54 @@
 ---
 title: "Analysis of the School achivement and IRS data for TN in 2014-2015"
-author: "Smita"
+author: "Smita, justin Brandon"
 date: "1/29/2018"
 output: html_document
 ---
-
+Packages used
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
+library(readxl)
+library(tidyr)
+library(tidyverse)
+library(dplyr)
+library(gapminder)
+library(ggplot2)
+library(corrplot)
+library(GGally)
+library(ggcorrplot)
+library(PerformanceAnalytics)
+library(MASS)
+library(PerformanceAnalytics)
+```
+##Analysis of the School data analysed per the core regions
+```{r}
+knitr::opts_chunk$set(echo = FALSE)
+sc_cr_b <- readRDS("data/sc_cr_b.RDS")
+##plots using the sc_cr_b df
+ggplot( sc_cr_b, aes(x=mean_expense, y=mean_enrol, color = CORE_region, size = mean_grad)) + 
+  geom_point() + ggtitle("Comparing Enrollment to expense per pupil") +
+  xlab("Average expense per student") + ylab("Average Enrollment")
+
+ggplot( sc_cr_b, aes(x=mean_expense, y=mean_enrol, color = CORE_region, size = left)) + 
+  geom_point() + ggtitle("Comparing Enrollment to expense per pupil") +
+  xlab("Average expense per student") + ylab("Average Enrollment")
+
+ggplot( sc_cr_b, aes(x=mean_expense, y=mean_ed, color = CORE_region, size = left)) + 
+  geom_point() + ggtitle("Comparing Enrollment to expense per pupil") +
+  xlab("Average expense per student") + ylab("Average Economically Disadvantage")
+```
+The state of TN is divided in 8 core regions 
+    East TN Core
+    First TN core
+    Mid Cumberland Core
+    Northwest Core
+    South Central Core
+    Southeast CORE
+    Southwest/Memphis Core
+    Upper Cumberland Core
+The Mid Cumberland Core has the highest enrollment of students across all the core regions and Northwest Core has least enrollment of students.
+```{r}
+
 ```
 
 ## R Markdown
