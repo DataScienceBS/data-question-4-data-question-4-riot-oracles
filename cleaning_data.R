@@ -63,6 +63,7 @@ school_cross <- left_join(school, zip_cross, by=c('system' = 'District Number'))
 ##################################
 
 combined_df <- left_join(merged_df, school_cross, by=c('county'='County_Name'))
+combined_df$agi_range <- factor(combined_df$agi_range, levels=c("$1 under $25,000","$25,000 under $50,000", "$50,000 under $75,000","$75,000 under $100,000","$100,000 under $200,000", "$200,000 or more"))
 
 saveRDS(merged_df, file="merged_df.RDS")
 saveRDS(school_cross, file="school_cross.RDS")

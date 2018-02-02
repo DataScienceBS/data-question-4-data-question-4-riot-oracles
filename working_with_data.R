@@ -8,6 +8,7 @@ library(dplyr)
 library(ggplot2)
 
 combined_df <- readRDS("combined_df.RDS")
+combined_df$agi_range <- factor(combined_df$agi_range, levels=c("$1 under $25,000","$25,000 under $50,000", "$50,000 under $75,000","$75,000 under $100,000","$100,000 under $200,000", "$200,000 or more"))
 merged_df <- readRDS("merged_df.RDS")
 school_cross <- readRDS("school_cross.RDS")
 
@@ -152,13 +153,16 @@ top_10_pop
 pairs(~ agi_per_return + ACT_Composite + ratio_by_agi + Dropout, data=combined_df)
 
 # scatter with RATIO_BY_AGI and ACT score #
+#combined_df$agi_range <- factor(combined_df$agi_range, levels=c("$1 under $25,000","$25,000 under $50,000", "$50,000 under $75,000","$75,000 under $100,000","$100,000 under $200,000", "$200,000 or more"))
+
 combined_df %>% 
   filter(zip_code != 0 | zip_code != 99999) %>% 
   filter(agi_range != 'Total') %>% 
+  filter(CORE_region != 'NA') %>% 
   #  group_by(agi_range) %>% 
-  ggplot(., aes(x=ratio_by_agi, y=ACT_Composite, color=CORE_region)) +
+  ggplot(., aes(x=ratio_by_agi, y=ACT_Composite, color=agi_range)) +
   geom_point() +
-  facet_grid(. ~ agi_range)
+  facet_grid(. ~ CORE_region)
 # the county ratio by agi group does not visually appear to have correlation with ACT scores.
 
 # scatter with RATIO_BY_AGI and DROPOUT #
@@ -177,7 +181,7 @@ combined_df %>%
   filter(zip_code != 0 | zip_code != 99999) %>% 
   filter(agi_range != 'Total') %>% 
   filter(CORE_region != 'NA') %>% 
-  #  group_by(agi_range) %>% 
+  group_by(agi_range) %>% 
   ggplot(., aes(x=ACT_Composite, y=Dropout, color=agi_range)) +
   geom_point() +
   facet_grid(. ~ CORE_region)
