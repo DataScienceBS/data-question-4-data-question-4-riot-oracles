@@ -100,7 +100,7 @@ ggplot(mem_grade, aes(x = gender, y = enrollment)) +
   geom_col()
 ggplot(mem_grade, aes(x = race_or_ethnicity, y = enrollment, 
                       color = race_or_ethnicity)) +
-         geom_col() +
+         geom_boxplot() + scale_y_log10() +
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
   xlab("") + ylab("Number of Enrollment") +
   ggtitle("Ethnic Representation of Student body across TN High Schools")
@@ -257,6 +257,7 @@ ggplot(mem_school, aes(x = CORE_region, y = Graduation,
 #removing all gender from the mem_school
 mem2<- subset(mem_school, gender!="All Genders")
 mem3 <- subset(mem2, race_or_ethnicity!= "All Race/Ethnic Groups")
+
 ggplot(mem3, aes(x= CORE_region, y = enrollment, 
                  color = gender)) +
   geom_boxplot() +

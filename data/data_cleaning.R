@@ -81,7 +81,8 @@ View(zip_TNa)
 #read the school dat
 school <- read.csv("data/school_ach.csv")
 View(school)
-
+save(school, file = "data/school.rds")
+save()
 #read the grade gender county etc data for school
 school_mem2015 <- read_csv("data/data_2015_membership_school.csv")
 #county crosswalk dat to get the county names
@@ -98,6 +99,7 @@ mem_grade<- mem%>%
 
 ggplot(mem_grade, aes(x = gender, y = enrollment)) +
   geom_col() 
+
 ggplot(mem_grade, aes(x = gender, y = enrollment)) +
   geom_boxplot() +
   scale_y_log10() + ggtitle("Gender distribution in TN high schools" ) +

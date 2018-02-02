@@ -37,16 +37,22 @@ ggplot( sc_cr_b, aes(x=mean_expense, y=mean_ed, color = CORE_region, size = left
   geom_point() + ggtitle("Comparing Enrollment to expense per pupil") +
   xlab("Average expense per student") + ylab("Average Economically Disadvantage")
 ```
-The state of TN is divided in 8 core regions 
-    East TN Core
-    First TN core
-    Mid Cumberland Core
-    Northwest Core
-    South Central Core
-    Southeast CORE
-    Southwest/Memphis Core
-    Upper Cumberland Core
-The Mid Cumberland Core has the highest enrollment of students across all the core regions and Northwest Core has least enrollment of students.
+###The state of TN is divided in 8 core regions  
+  East TN Core  
+  First TN core  
+  Mid Cumberland Core  
+  Northwest Core  
+  South Central Core  
+  Southeast Core  
+  Southwest/Memphis Core  
+  Upper Cumberland Core    
+The Mid Cumberland Core has the highest enrollment of students across all the core regions and Northwest Core has least enrollment of students.  
+The Southeast Core region has the lowest graduation rate and the highest dropouts.  
+On analysis we found that the percetage of economically disadvantaged is also highest in the Southeast Core. Although we found that expentidure per pupil is same for all the core regions.  
+On doing research we found that if the school budget/spending is incresed so that the schools can provide the students more resources thus compensating for the lack of finnancial support from the family to provide extra resources can help the overall graduation rate and will overall improve the economics of the state overtime.
+Although we found that expentidure per pupil is same for all the core regions
+
+
 ```{r}
 
 ```
@@ -57,15 +63,13 @@ This is an R Markdown document. Markdown is a simple formatting syntax for autho
 
 When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
 
-```{r cars}
+```{r cars, eval=FALSE, include=FALSE}
 summary(cars)
 ```
 
-## Including Plots
 
-You can also embed plots, for example:
 
-```{r pressure, echo=FALSE}
+```{r pressure, eval=FALSE, include=FALSE}
 plot(pressure)
 ```
 

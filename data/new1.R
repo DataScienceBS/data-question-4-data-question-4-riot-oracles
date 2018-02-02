@@ -93,6 +93,8 @@ sc_cr_a <- school%>%
             mean_dropout = mean(Dropout, na.rm = TRUE),
             mean_enrol = mean(Enrollment, na.rm = TRUE),
             mean_expense = mean(Per_Pupil_Expenditures, na.rm = TRUE),
+            mean_absent = mean(Pct_Chronically_Absent, na.rm = TRUE),
+            mean_ed = mean(Pct_ED, na.rm = TRUE),
             mean_absent = mean(Pct_Chronically_Absent, na.rm = TRUE))
 ##sum up the row which will give total % of student leaving in middle
 ##due to expel and dropout
@@ -101,7 +103,8 @@ sc_cr_b <- sc_cr_a %>%
   mutate(left = sum(mean_exp, mean_dropout))
 #drop the row which is for all TN
 sc_cr_b <- sc_cr_b[-9, ]
-
+####
+saveRDS(sc_cr_b, file = "data/sc_cr_b.RDS")
 ##plots using the sc_cr_b df
 ggplot( sc_cr_b, aes(x=mean_expense, y=mean_enrol, color = CORE_region, size = mean_grad)) + 
   geom_point() + ggtitle("Comparing Enrollment to expense per pupil") +
@@ -110,3 +113,51 @@ ggplot( sc_cr_b, aes(x=mean_expense, y=mean_enrol, color = CORE_region, size = m
 ggplot( sc_cr_b, aes(x=mean_expense, y=mean_enrol, color = CORE_region, size = left)) + 
   geom_point() + ggtitle("Comparing Enrollment to expense per pupil") +
   xlab("Average expense per student") + ylab("Average Enrollment")
+
+ggplot( sc_cr_b, aes(x=mean_expense, y=mean_ed, color = CORE_region, size = left)) + 
+  geom_point() + ggtitle("Comparing Enrollment to expense per pupil") +
+  xlab("Average expense per student") + ylab("Average Economically Disadvantage")
+
+#read the garde gender county etc dat for school
+school_mem2015 <- read_csv("data/data_2015_membership_school.csv")
+#county crosswalk dat to get the county names
+crosswalk <- read_xls("data/county_crosswalk.xls")
+
+###meged the school+crosswalk+totaltax+zip
+
+merged  <- left_join(school_crosswalk, ttax_zip, by = c("County Name" = "county"))
+merged2 <- left_join(ttax_zip, school_crosswalk, by = c("county" = "County Name"))
+View(merged2)
+
+sum(is.na(merged2))
+merged2a <- na.omit(merged)
+
+##just get the high school from the membership data
+mem <- filter(school_mem2015, grade %in% c("9", "10", "11", "12"))
+mem1<- subset(mem, gender!="All Genders") 
+mem1a<- subset(mem1, race_or_ethnicity!= "All Race/Ethnic Groups")
+mem_sch2 <- left_join(school_crosswalk, mem1a, by = c("County Name" = "district_name") )
+
+
+
+mem_sch3 <- subset(mem_sch2, Graduation !=0)
+mem_sch4 <- subset(mem_sch3, system !=0)
+
+#finding na in df:: 53 na in mem_sch4
+sum(is.na(mem_sch4))
+mem_sch5<- na.omit(mem_sch4)
+sum(is.na(mem_sch5))
+
+ggplot(mem_sch5, aes(x=CORE_region, y = enrollment, color = race_or_ethnicity)) +
+  geom_boxplot()
+  
+ggplot(mem_sch5, aes(x=race_or_ethnicity, y = enrollment, color = race_or_ethnicity)) +
+  geom_boxplot() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) + coord_flip() 
+ggplot(mem_sch5, aes(x=CORE_region, y = enrollment, color = race_or_ethnicity)) +
+  geom_boxplot() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) + coord_flip()
+
+ggplot(mem_sch5, aes(x=CORE_region, y = ACT_Composite, color = race_or_ethnicity, size = enrollment)) +
+  geom_point() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
