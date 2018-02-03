@@ -1,0 +1,3 @@
+load("/Users/Justin/Code/data-question-4-data-question-4-riot-oracles/combined_df.RDS")
+load("/Users/Justin/Code/data-question-4-data-question-4-riot-oracles/tn_ed_map.rds")
+load("/Users/Justin/Code/data-question-4-data-question-4-riot-oracles/tn_agi_map.rds")
