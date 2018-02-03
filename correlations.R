@@ -16,19 +16,19 @@ school_cross <- readRDS("school_cross.RDS")
 ### moderate negative linear correlation between ACT Composite score and the Dropout rate ###
 #### Plot of ACL vs. Dropout ####
 
-school %>% 
+school_cross %>% 
   filter(ACT_Composite > 15) %>% 
   ggplot(., aes(x = ACT_Composite, y = Dropout)) + 
   geom_point() + 
   geom_smooth(method = 'lm', se = FALSE) +
   ylim(-5,35)
 
-corr_testing <- school %>% 
+corr_testing <- school_cross %>% 
   filter(Dropout != 'NA') %>% 
   filter(ACT_Composite > 15)
 
 cor.test(corr_testing$Dropout, corr_testing$ACT_Composite, method = "pearson")
-cor.test(school$Dropout, school$ACT_Composite, method = "pearson")
+cor.test(school_cross$Dropout, school_cross$ACT_Composite, method = "pearson")
 # correlation between Dropout and ACT Composite is -0.336, removing 1 outlier ACT<15 adjusts to -0.243
   
 ##############################
@@ -41,13 +41,13 @@ farm_by_county <- merged_df %>%
   summarise(filed_per_agi = sum(return_c),
             farm_per_agi = sum(farm_c)) 
 
-farm_by_county %<>%
-  group_by(county) %>% 
-  mutate(filed_per_county = sum(filed_per_agi),
-         farm_per_county = sum(farm_per_agi),
-         pct_farm = round((farm_per_county/filed_per_county)*100,1)) %>% 
-  select(county,pct_farm) %>% 
-  distinct(.)
+  farm_by_county %<>%
+    group_by(county) %>% 
+    mutate(filed_per_county = sum(filed_per_agi),
+           farm_per_county = sum(farm_per_agi),
+           pct_farm = round((farm_per_county/filed_per_county)*100,1)) %>% 
+    select(county,pct_farm) %>% 
+    distinct(.)
 
 school_cross$county <- school_cross$`County Name`
 school_farm <- merge(x = school_cross, y = farm_by_county, by='county', all.x=TRUE)
@@ -59,6 +59,21 @@ cor.test(school_farm$pct_farm, school_farm$Pct_Suspended, method = 'pearson') # 
 cor.test(school_farm$pct_farm, school_farm$Pct_BHN, method = 'pearson') # -0.380
 cor.test(school_farm$pct_farm, school_farm$Graduation, method = 'pearson') #0.151
 cor.test(school_farm$pct_farm, school_farm$Enrollment, method = 'pearson') # -0.111
+
+cor.test(school_farm$pct_farm, school_farm$Pct_Suspended, method = 'pearson')
+
+farm_map <- school_farm %>% 
+  filter(CORE_region != 'NA') %>% 
+  filter(Pct_Suspended != 0) %>% 
+  ggplot(., aes( x=Pct_Suspended, y=pct_farm, color=County_Name)) +
+  geom_point() 
+
+farm_map <-  farm_map + facet_grid(. ~ CORE_region)
+
+farm_map <- ggplotly(farm_map, width=1500, height=500)
+farm_map
+
+saveRDS(farm_map, file="farm_map.RDS")
 
 
 ######################################

@@ -9,7 +9,8 @@ output:
 
 ```{r reading_data, include=FALSE}
 knitr::opts_chunk$set(include = TRUE)
-combined_df <- readRDS("combined_df.RDS")  # BS  
+combined_df <- readRDS("combined_df.RDS")  # BS
+farm_map <- readRDS("farm_map.RDS")  # BS
 school_cross <- readRDS("school_cross.RDS") # BS  
 merged_df <- readRDS("data/merged_df.rds") # Justin  
 sc_cr_b <- readRDS("data/sc_cr_b.RDS") # Smita 
@@ -46,6 +47,9 @@ Some school districts reported a graduation rate of 0%. Obviously, this is not a
 
 [Dual Enrollment for TN School Districts](https://www.ingramcontent.com/news/dual-enrollment-made-more-accessible-for-tennessee-school-districts)  
 
+[Centers of Regional Excellence](https://www.tn.gov/education/centers-of-regional-excellence.html)  
+  
+
 ## Visuals  
 ### AGI and ACT composite chloropleths
 
@@ -67,7 +71,7 @@ zip_total <- merged_df %>%
    filter(!is.na(county))
 ```
 
-``` {r Justin_2b, echo = FALSE, warning = FALSE}
+```{r Justin_2b, echo = FALSE, warning = FALSE}
 ## Filter data to just include TN
 
 TN_data <- map_data("state") %>% 
@@ -141,11 +145,22 @@ TN_map <- ggplot() +
   theme(plot.title = element_text(hjust = 0.5))
 ```
 
-```{r maps, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
-TN_agi_map
-TN_ed_map
-TN_map
-#mapping <- subplot(TN_agi_map, TN_ed_map, TN_map, nrows = 3)
+```{r maps, echo=FALSE, message=FALSE, warning=FALSE}
+#TN_agi_map
+#TN_ed_map
+#TN_map
+
+map1 <- TN_agi_map
+map2 <- TN_ed_map
+map3 <- TN_map
+
+map1
+map2
+map3
+
+#mapping <- subplot(map1, map2, map3, nrows = 3) %>% 
+#  layout(showlegend = FALSE, showlegend2 = FALSE, showlegend3 = FALSE)
+
 #mapping
 ```   
 
@@ -297,6 +312,12 @@ prof_ed_plot<- plot_ly(ed_df, y = (~Pct_proficient), x = ~Pct_ED, color = ~Subje
 prof_ed_plot
 ```  
   
+   
+### Farm Areas  
+The relationship between the percentage of farm to the percentage of suspension. 
+```{r farm, echo=FALSE, message=FALSE, warning=FALSE}
+farm_map
+```
    
 ### Grades Matter!   
 
