@@ -1,0 +1,331 @@
+---
+title: "Riot Oracles"
+author: "Justin, Smita, and Brandon"
+date: "2/3/2018"
+output:
+    html_document:
+      toc: true
+---
+
+```{r reading_data, include=FALSE}
+knitr::opts_chunk$set(include = TRUE)
+combined_df <- readRDS("combined_df.RDS")  # BS  
+school_cross <- readRDS("school_cross.RDS") # BS  
+merged_df <- readRDS("data/merged_df.rds") # Justin  
+sc_cr_b <- readRDS("data/sc_cr_b.RDS") # Smita 
+```
+
+```{r libraries, include=FALSE}
+library(ggplot2)
+library(dplyr)
+# library(knitr)
+# library(tidyr)
+# library(PerformanceAnalytics)  
+ library(maps)
+ library(mapdata)
+# library(mapproj) 
+ library(ggmap)
+ library(plotly)
+# library(GGally)
+# library(corrplot)
+# library(MASS)
+# library(tidyverse)
+# library(gapminder)
+```
+
+## Data and Approach
+We used IRS tax data for the state of Tennessee to review income levels by zip code, along with other financial variables, to find correlation with county level school data. We analyzed school and tax data separately, as well as their influence on each other. The data sources for our research have been included in our [Sources Cited](#sources-cited).   
+  
+![](https://www.tn.gov/content/dam/tn/education/images/CORE-districts.png)
+  
+## Cleaning the Data
+Some school districts reported a graduation rate of 0%. Obviously, this is not accurate, and were likely empty values. We removed this data as to not influence the averages per CORE Region. We also identified instances where county data did not map exactly between tax and shool data. We were able to leverage the zip code crosswalk to join these datasets, as well as some data cleansing to ensure DeKalb County was properly recognized. 
+
+## Research  
+[School Funding, Taxes, and Economic Growth, _An Analysis of the 50 States_](http://www.nea.org/assets/docs/HE/schoolfunding.pdf), was part of our research.  
+
+[Dual Enrollment for TN School Districts](https://www.ingramcontent.com/news/dual-enrollment-made-more-accessible-for-tennessee-school-districts)  
+
+## Visuals  
+### AGI and ACT composite chloropleths
+
+As expected, a higher income from a particular county *does* result in a lower percentage of students that qualify as **"Economically Disadvantaged"** - students that qualified for free or reduced lunches.  
+```{r Justin_2, echo = FALSE, warning = FALSE}
+## Cloropleth
+
+## Total across zip code - removes agi ranges
+zip_total <- merged_df %>% 
+  filter(zip_code != 0 & is.na(agi_range))
+
+ ## Filtering and summarising subject proficiency
+ chloro_df <- zip_total %>% 
+   filter(is.na(agi_range)) %>% 
+   dplyr::select(CORE_region, system_name, county, Pct_ED, AlgI, AlgII, Math, 
+          BioI, Chemistry, Science, ACT_Composite) %>%
+   group_by(county) %>% 
+   summarise_all(funs(mean)) %>% 
+   filter(!is.na(county))
+```
+
+``` {r Justin_2b, echo = FALSE, warning = FALSE}
+## Filter data to just include TN
+
+TN_data <- map_data("state") %>% 
+  filter(region =='tennessee')
+
+TN_counties <- map_data("county") %>% 
+  subset(., region == "tennessee")
+
+TN_counties$subregion <- TN_counties$subregion %>% 
+  gsub('de kalb', 'dekalb', .)
+
+chloro_df$county_l <- sapply(chloro_df$county, tolower) %>% 
+  gsub(' county','', .)
+
+## Left join to merge polygon and county data
+
+chloro_df <- left_join(x = TN_counties, y = chloro_df, by = c("subregion" = "county_l"))
+
+## Switching to AGI data
+
+agi_chloro_df <- zip_total %>% 
+  filter(is.na(agi_range)) %>% 
+  mutate(avg_agi = (agi_a * 1000)/return_c) %>% 
+  select(CORE_region, system_name, county, avg_agi) %>%
+  group_by(county) %>% 
+  summarise_all(funs(mean)) %>% 
+  filter(!is.na(county))
+
+## Filter data to just include TN
+
+agi_chloro_df$county_l <- sapply(agi_chloro_df$county, tolower) %>% 
+  gsub(' county','', .)
+
+## Left join to merge polygon and county data
+
+agi_chloro_df <- left_join(x = TN_counties, y = agi_chloro_df, by = c("subregion" = "county_l"))
+
+## Create maps
+
+TN_agi_map <- ggplot() + 
+  geom_polygon(data = agi_chloro_df, 
+               aes(x = long, y = lat, group = group, fill = avg_agi),
+               color = "white", size = 0.25) +
+  coord_map() +
+  scale_fill_distiller(name = "Average AGI", palette = "YlGn") +
+  theme_nothing(legend = TRUE) +
+  labs(title = "Average AGI") +
+  theme(plot.title = element_text(hjust = 0.5)) 
+
+TN_ed_map <- ggplot() + 
+  geom_polygon(data = chloro_df, 
+               aes(x = long, y = lat, group = group, fill = Pct_ED),
+               color = "white", size = 0.25) +
+  coord_map() +
+  scale_fill_distiller(name = "Percent ED", palette = "YlGn", trans = "reverse") +
+  theme_nothing(legend = TRUE) +
+  labs(title = "% of Economically Disadvantaged Students") +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+```{r ACT_county_map, include=FALSE}
+color_df <- readRDS("color_df.RDS")
+
+TN_map <- ggplot() +
+  geom_polygon(data = color_df,
+               aes(x = long, y = lat, group = group, fill = Average_ACT_Composite),
+               color = "white", size = 0.25) +
+  coord_map() +
+  scale_fill_distiller(name="ACT Scores", palette = "YlGn") +
+  theme_nothing(legend = TRUE) +
+  labs(title = "Average ACT Composite Scores by County") +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r maps, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+TN_agi_map
+TN_ed_map
+TN_map
+#mapping <- subplot(TN_agi_map, TN_ed_map, TN_map, nrows = 3)
+#mapping
+```   
+
+Shown below is the average ACT Composite Score by zip code, colored by AGI Range, with the x-axis showing the ratio of AGI per range. As shown at the highest ACT Score of the Mid Cumberland Core, we see an ACT Composite Score of 23.8. With such a tight grouping of ratio by AGI, the income for this zip code appears to be closer across AGI ranges. Closer investigation shows this zip code is vastly different from most other zip codes - the AGI Range of $1 to $25,000 has the lowest ratio of all zip codes at this y-axis.  
+  
+```{r ACT_agi, echo=FALSE, message=FALSE, warning=FALSE}
+p <- combined_df %>% 
+  filter(zip_code != 0 | zip_code != 99999) %>% 
+  filter(agi_range != 'Total') %>% 
+  filter(CORE_region != 'NA') %>% 
+  #  group_by(agi_range) %>% 
+  ggplot(., aes(x=ratio_by_agi, y=ACT_Composite, color=agi_range)) +
+  geom_point() 
+
+p <-  p + facet_grid(. ~ CORE_region)
+
+p <- ggplotly(p, width=1500, height=500)
+p
+```
+  
+```{r test_plotly, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+#plot_ly(combined_df, y = ~ACT_Composite, x = ~ratio_by_agi, color = ~agi_range,
+#                   type = 'scatter',
+#                   mode = 'markers',
+#                   alpha = 0.3,
+#                   text = ~paste('Zip Code: ', zip_code,
+#                                 '<br> System Name: ', system_name))
+```
+Southwest Memphis Core seems to have more variation in ACT Composite scores than any other region in the state. 
+  
+```{r act_by_core, echo=FALSE, warning=FALSE}
+box <- combined_df %>% 
+  filter(zip_code != 0 | zip_code != 99999) %>% 
+  filter(agi_range != 'Total') %>% 
+  filter(CORE_region != 'NA') %>% 
+  filter(ACT_Composite != 'NA') %>% 
+  ggplot(., aes(x=CORE_region, y=ACT_Composite)) +
+  geom_boxplot() +
+  theme(axis.text.x = element_text(angle = 60, hjust = 1))
+
+box
+```
+
+   
+### Enrollment Expense per Pupil  
+```{r smita, echo=FALSE, message=FALSE, warning=FALSE}
+
+##plots using the sc_cr_b df
+ggplot( sc_cr_b, aes(x=mean_expense, y=mean_enrol, color = CORE_region, size = mean_grad)) + 
+  geom_point() + ggtitle("Comparing Enrollment to expense per pupil") +
+  xlab("Average expense per student") + ylab("Average Enrollment")
+
+ggplot( sc_cr_b, aes(x=mean_expense, y=mean_enrol, color = CORE_region, size = left)) + 
+  geom_point() + ggtitle("Comparing Enrollment to expense per pupil") +
+  xlab("Average expense per student") + ylab("Average Enrollment")
+
+ggplot( sc_cr_b, aes(x=mean_expense, y=mean_ed, color = CORE_region, size = left)) + 
+  geom_point() + ggtitle("Comparing Enrollment to expense per pupil") +
+  xlab("Average expense per student") + ylab("Average Economically Disadvantage")
+```
+  
+### Graduation Rates by Region   
+  
+
+The boxplot below shows that, while most CORE regions in TN have a graduation rate around **90%**, we have some outliers in the Northwest and South Central regions.
+
+The outlier in the Northwest region is *Humboldt City*, with a graduation rate of **68.5%**. This school system stands out in other troubling ways, which will be visited again later.
+
+```{r box_data_6, echo = FALSE, warning = FALSE}
+
+## Avg by_agi_range to show mean AGI and graduation rates by zip, including CORE region
+agi_grad_df <- merged_df %>%
+  filter(is.na(agi_range) & !is.na(zip_code)) %>%
+  mutate(avg_agi = (agi_a * 1000) / return_c) %>%
+  group_by(zip_code) %>%
+  summarise(mean_agi = mean(avg_agi),
+            mean_grad = mean(Graduation))
+
+core_zip<- merged_df %>%
+  filter(is.na(agi_range) & !is.na(zip_code)) %>%
+  select(zip_code, CORE_region, system_name)
+
+agi_grad_plot <- agi_grad_df %>%
+  left_join(core_zip[c("zip_code", "CORE_region", "system_name")], by = "zip_code") %>%
+  filter(!is.na(CORE_region))
+
+## Boxplot
+x_grad <- list(title = "", showticklabels = FALSE)
+y_grad <- list(title = "Graduation Rate")
+
+grad_box_plot<- plot_ly(agi_grad_plot, y = (~mean_grad), x = ~CORE_region, color = ~CORE_region,
+                        type = "scatter",
+                        mode = "markers",
+                        alpha = 0.3,
+                        text = ~paste('Zip Code: ', zip_code,
+                                      '<br> System Name: ', system_name)) %>%
+  layout(xaxis = x_grad, yaxis = y_grad, legend = list(orientation = 'h')) %>%
+  add_trace(agi_grad_plot, y = ~mean_grad, color = ~CORE_region, type = "box")
+
+grad_box_plot
+```   
+  
+
+### Impact of Economic Disadvantage 
+
+In the plot below, we can see that the higher percentage of a student body that qualify for free or reduced lunches score lower in both Math and Science.  
+ 
+*Humboldt City* school system had **97.9%** of their students qualify for free or reduced lunches. Students in the Humboldt City school system had a **43.8%** and **38.4%** proficiency rate in Science and Math, respectively. As you might recall, *Humboldt City* also had one of the lowest graduation rates in TN, at **68.5%**.  
+
+On the opposite side, *Lakeland City* reported a **14.7%** rate of Economically Disadvantaged students, while scoring **90.9%** and **88.2%** in Science and Math.  
+
+
+```{r justin_7, echo = FALSE}
+
+## Total across zip code - removes agi ranges
+zip_total <- merged_df %>% 
+  filter(zip_code != 0 & is.na(agi_range))
+
+## Filtering and summarising subject proficiency
+subjects_df <- zip_total %>% 
+  select(CORE_region, system_name, Pct_ED, AlgI, AlgII, Math, 
+         BioI, Chemistry, Science) %>%
+  group_by(CORE_region,
+           system_name) %>% 
+  summarise_all(funs(mean)) %>% 
+  filter(!is.na(CORE_region))
+
+
+## Melting data into tidy
+ed_df <- reshape2::melt(subjects_df, id = c('CORE_region', 'system_name', 'Pct_ED'))
+names(ed_df) <- c("CORE_region", "system_name", "Pct_ED", "Subject", "Pct_proficient")
+
+ed_df <- ed_df %>% 
+          filter(Pct_proficient > 0, system_name != "Achievement School District",
+                 Subject == "Science" | Subject == "Math")
+
+x_prof <- list(title = "% Economically Disadvantaged")
+y_prof <- list(title = "Proficiency Rate")
+
+prof_ed_plot<- plot_ly(ed_df, y = (~Pct_proficient), x = ~Pct_ED, color = ~Subject,
+                        type = "scatter",
+                        mode = "markers",
+                        alpha = 0.7,
+                        text = ~paste('CORE Region: ', CORE_region,
+                                      '<br> School System: ', system_name,
+                                      '<br> Subject: ', Subject)) %>% 
+  layout(xaxis = x_prof, yaxis = y_prof, legend = list(orientation = 'v'))
+
+prof_ed_plot
+```  
+  
+   
+### Grades Matter!   
+
+Using data from the state achievement scores, we were able to accurately predict the average ACT scores for a county given the proficiency rates of four key subject categories: **Algebra I**, **Chemistry**, **Math**, and **ELA**. Using DeKalb County as a test county, we trained a prediction model on the other 94 counties in Tennessee and we able to predict DeKalb's ACT Composite score of 19.1.  
+_lm(formula = ACT_Composite ~ AlgI + Chemistry + Math + ELA, data = school_cross_no_dekalb_no_outliers)_  
+  
+
+## Sources Cited
+
+### Packages Used
+*  readxl  
+*  ggplot2  
+*  knitr  
+*  dplyr  
+*  tidyr  
+*  PerformanceAnalytics  
+*  maps  
+*  mapdata  
+*  mapproj  
+*  ggmap  
+*  plotly  
+*  GGally  
+*  corrplot  
+*  MASS  
+*  tidyverse  
+*  gapminder  
+
+### Data Links  
+*  [IRS Sales Tax Data](https://www.irs.gov/statistics/soi-tax-stats-individual-income-tax-statistics-zip-code-data-soi)    
+*  [School Achievement Data](https://www.tn.gov/education/data/data-downloads.html)   
+*  [Crosswalk, Zip to District](https://www.tn.gov/education/data/data-downloads.html)  
+*  [Department of Education, Data Definitions](https://www.tn.gov/content/dam/tn/education/data/data_definitions.pdf)  
