@@ -7,6 +7,9 @@ output:
       toc: true
 ---
 
+<!--- This R markdown file was created as part of the Nashville Software School, Data Science Cohort 01. 
+The task was to take IRS 2014-2015 data for the state of Tennessee, and state high school academic achievement scores to gather insight, identify relationships or correlations, and report as a data journalist and communicate with an audience at an 8th grade level  --->
+
 ```{r reading_data, include=FALSE}
 knitr::opts_chunk$set(include = TRUE)
 combined_df <- readRDS("combined_df.RDS")  # BS
@@ -158,9 +161,12 @@ map1
 map2
 map3
 
+# Created maps 1-3 to add to subplots below in hopes it would minimize the gap. 
+# We succeeded, but the title and legend became a struggle we were unable to overcome in the timeline provided. 
+ 
 #mapping <- subplot(map1, map2, map3, nrows = 3) %>% 
 #  layout(showlegend = FALSE, showlegend2 = FALSE, showlegend3 = FALSE)
-
+ 
 #mapping
 ```   
 
@@ -171,7 +177,6 @@ p <- combined_df %>%
   filter(zip_code != 0 | zip_code != 99999) %>% 
   filter(agi_range != 'Total') %>% 
   filter(CORE_region != 'NA') %>% 
-  #  group_by(agi_range) %>% 
   ggplot(., aes(x=ratio_by_agi, y=ACT_Composite, color=agi_range)) +
   geom_point() 
 
