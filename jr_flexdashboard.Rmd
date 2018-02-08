@@ -1,0 +1,278 @@
+---
+title: "Impact of Economic Disadvantage in TN (2015)"
+author: "Justin Rothbart"
+date: "2/6/2018"
+output:
+    flexdashboard::flex_dashboard
+---
+
+```{r reading_data, include=FALSE}
+knitr::opts_chunk$set(include = TRUE)
+merged_df <- readRDS("data/merged_df.rds") # Justin  
+```
+
+```{r libraries, include=FALSE}
+library(ggplot2)
+library(dplyr)
+ library(maps)
+ library(mapdata)
+ library(ggmap)
+ library(plotly)
+
+```
+```{r Justin_2, echo = FALSE, warning = FALSE}
+## Cloropleth
+
+## Total across zip code - removes agi ranges
+zip_total <- merged_df %>% 
+  filter(zip_code != 0 & is.na(agi_range))
+
+ ## Filtering and summarising subject proficiency
+ chloro_df <- zip_total %>% 
+   filter(is.na(agi_range)) %>% 
+   dplyr::select(CORE_region, system_name, county, Pct_ED, AlgI, AlgII, Math, 
+          BioI, Chemistry, Science, ACT_Composite) %>%
+   group_by(county) %>% 
+   summarise_all(funs(mean)) %>% 
+   filter(!is.na(county))
+```
+
+``` {r Justin_2b, echo = FALSE, warning = FALSE}
+## Filter data to just include TN
+
+TN_data <- map_data("state") %>% 
+  filter(region =='tennessee')
+
+TN_counties <- map_data("county") %>% 
+  subset(., region == "tennessee")
+
+TN_counties$subregion <- TN_counties$subregion %>% 
+  gsub('de kalb', 'dekalb', .)
+
+chloro_df$county_l <- sapply(chloro_df$county, tolower) %>% 
+  gsub(' county','', .)
+
+## Left join to merge polygon and county data
+
+chloro_df <- left_join(x = TN_counties, y = chloro_df, by = c("subregion" = "county_l"))
+
+## Switching to AGI data
+
+agi_chloro_df <- zip_total %>% 
+  filter(is.na(agi_range)) %>% 
+  mutate(avg_agi = (agi_a * 1000)/return_c) %>% 
+  select(CORE_region, system_name, county, avg_agi) %>%
+  group_by(county) %>% 
+  summarise_all(funs(mean)) %>% 
+  filter(!is.na(county))
+
+## Filter data to just include TN
+
+agi_chloro_df$county_l <- sapply(agi_chloro_df$county, tolower) %>% 
+  gsub(' county','', .)
+
+## Left join to merge polygon and county data
+
+agi_chloro_df <- left_join(x = TN_counties, y = agi_chloro_df, by = c("subregion" = "county_l"))
+
+## Create maps
+
+TN_agi_map <- ggplot() + 
+  geom_polygon(data = agi_chloro_df, 
+               aes(x = long, y = lat, group = group, fill = avg_agi),
+               color = "white", size = 0.25) +
+  coord_map() +
+  scale_fill_distiller(name = "Average AGI", palette = "YlGn") +
+  theme_nothing(legend = TRUE) +
+  labs(title = "Average AGI") +
+  theme(plot.title = element_text(hjust = 0.5)) 
+
+TN_ed_map <- ggplot() + 
+  geom_polygon(data = chloro_df, 
+               aes(x = long, y = lat, group = group, fill = Pct_ED),
+               color = "white", size = 0.25) +
+  coord_map() +
+  scale_fill_distiller(name = "Percent ED", palette = "RdYlBu") +
+  theme_nothing(legend = TRUE) +
+  labs(title = "% of Economically Disadvantaged Students") +
+  theme(plot.title = element_text(hjust = 0.35))
+
+TN_map <- ggplotly(TN_ed_map, width = 700, height = 250)
+```
+
+## {data-width = 25}
+--------------
+### Impact
+In the plots to the right, we can see that a higher percentage in the student body that qualify for free or reduced lunches score lower in both Math and Science, while often also experiencing lower graduation rates.
+ 
+**Humboldt City** school system had **97.9%** of their students qualify for free or reduced lunches. Students in the Humboldt City school system had a **43.8%** and **38.4%** proficiency rate in Science and Math, respectively. Humboldt City also had one of the lowest graduation rates in TN, at **68.5%**.  
+
+On the opposite side of the spectrum, **Williamson County** reported a **9.6%** rate of Economically Disadvantaged students, while scoring **91.1%%** and **80.3%** in Science and Math. Williamson County also has a high graduation rate when compared to other TN school systems, with **94.4%** of their students graduating. 
+
+**Additional recommended reading:** 
+
+* [Similar results have been found in neighboring Georgia (2014 data)](http://documents.atlantaregional.com/regional-snapshot/2014/july/edu-k12.pdf) 
+
+* [Further investigation of the factors associated with the underachievement of disadvantaged students](http://www.tandfonline.com/doi/full/10.1080/2331186X.2016.1178441)
+
+
+### TN Economically Disadvantaged Map
+```{r ed_map, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+TN_map
+``` 
+
+```{r grad_ed, echo = FALSE}
+ed_grad_rates <- merged_df %>% 
+                 filter(is.na(agi_range)) %>% 
+                 select(CORE_region, system_name, county, Pct_ED, Graduation) %>% 
+                 group_by(county,
+                          CORE_region,
+                          system_name) %>% 
+                 summarise_all(funs(mean)) %>% 
+                 filter(!is.na(county),
+                        !is.na(Graduation),
+                        Graduation > 55)
+
+high_grad_name <- ed_grad_rates[(ed_grad_rates$system_name == "Williamson County"), ]
+low_grad_name <- ed_grad_rates[ed_grad_rates$system_name == "Humboldt City", ]
+
+high_grad <- list(
+  x = high_grad_name$Pct_ED,
+  y = high_grad_name$Graduation,
+  text = "Williamson County",
+  xref = "x",
+  yref = "y",
+  showarrow = TRUE,
+  arrowhead = 2,
+  ax = 40,
+  ay = -50
+)
+
+low_grad <- list(
+  x = low_grad_name$Pct_ED,
+  y = low_grad_name$Graduation,
+  text = "Humboldt City",
+  xref = "x",
+  yref = "y",
+  showarrow = TRUE,
+  arrowhead = 2,
+  ax = 40,
+  ay = -50
+)
+x_grad_ed <- list(title = "% Economically Disadvantaged")
+y_grad_ed <- list(title = "Graduation Rate")
+
+
+grad_ed_plot<- plot_ly(ed_grad_rates, y = (~Graduation), x = ~Pct_ED, color = ~CORE_region,
+                       type = "scatter",
+                       mode = "markers",
+                       alpha = 0.7,
+                       text = ~paste('Graduation Rate: ', Graduation,
+                                     '<br> School System: ', system_name,
+                                     '<br> CORE Region: ', CORE_region)) %>% 
+  layout(xaxis = x_grad_ed, yaxis = y_grad_ed, legend = list(orientation = 'v'), annotations = list(high_grad, low_grad))
+
+```
+
+## {data-width = 75}
+--------------
+
+### Graduation Rates
+```{r grad_ed_plot, echo = FALSE}
+grad_ed_plot
+```
+
+```{r justin_7, echo = FALSE}
+
+## Total across zip code - removes agi ranges
+zip_total <- merged_df %>% 
+  filter(zip_code != 0 & is.na(agi_range))
+
+## Filtering and summarising subject proficiency
+subjects_df <- zip_total %>% 
+  select(CORE_region, system_name, Pct_ED, AlgI, AlgII, Math, 
+         BioI, Chemistry, Science) %>%
+  group_by(CORE_region,
+           system_name) %>% 
+  summarise_all(funs(mean)) %>% 
+  filter(!is.na(CORE_region))
+
+
+## Melting data into tidy
+ed_df <- reshape2::melt(subjects_df, id = c('CORE_region', 'system_name', 'Pct_ED'))
+names(ed_df) <- c("CORE_region", "system_name", "Pct_ED", "Subject", "Pct_proficient")
+
+ed_df <- ed_df %>% 
+          filter(Pct_proficient > 0, system_name != "Achievement School District",
+                 Subject == "Science" | Subject == "Math")
+
+## Finding value for Williamson County and Humboldt City in math and science
+
+high_score_math_county <- ed_df[(ed_df$system_name == "Williamson County" & ed_df$Subject == "Math"), ]
+low_score_math_county <- ed_df[ed_df$system_name == "Humboldt City" & ed_df$Subject == "Math", ]
+high_score_science_county <- ed_df[(ed_df$system_name == "Williamson County" & ed_df$Subject == "Science"), ]
+low_score_science_county <- ed_df[ed_df$system_name == "Humboldt City" & ed_df$Subject == "Science", ]
+
+label_create_high <- function(x_var, y_var, text_label) {
+  list(
+  x = x_var,
+  y = y_var,
+  text = text_label,
+  xref = "x",
+  yref = "y",
+  showarrow = TRUE,
+  arrowhead = 1,
+  ax = 20,
+  ay = -25
+)
+}
+
+label_create_low <- function(x_var, y_var, text_label) {
+  list(
+  x = x_var,
+  y = y_var,
+  text = text_label,
+  xref = "x",
+  yref = "y",
+  showarrow = TRUE,
+  arrowhead = 1,
+  ax = 15,
+  ay = -45
+)
+}
+
+high_score_math <- label_create_low(high_score_math_county$Pct_ED, 
+             high_score_math_county$Pct_proficient,
+             "")
+
+low_score_math <- label_create_low(low_score_math_county$Pct_ED,
+                               low_score_math_county$Pct_proficient,
+                               "")
+
+high_score_science <- label_create_high(high_score_science_county$Pct_ED,
+                               high_score_science_county$Pct_proficient,
+                               "Williamson County")
+
+low_score_science <- label_create_high(low_score_science_county$Pct_ED,
+                               low_score_science_county$Pct_proficient,
+                               "Humboldt City")
+
+x_prof <- list(title = "% Economically Disadvantaged")
+y_prof <- list(title = "Proficiency Rate")
+
+prof_ed_plot<- plot_ly(ed_df, y = (~Pct_proficient), x = ~Pct_ED, color = ~Subject,
+                        type = "scatter",
+                        mode = "markers",
+                        alpha = 0.7,
+                        text = ~paste('CORE Region: ', CORE_region,
+                                      '<br> School System: ', system_name,
+                                      '<br> Subject: ', Subject)) %>% 
+  layout(xaxis = x_prof, yaxis = y_prof, legend = list(orientation = 'v'),annotations = list(high_score_math, low_score_math,
+                        high_score_science, low_score_science))
+
+```  
+
+### Subject Proficiency
+```{r prof_plot, echo = FALSE}
+prof_ed_plot
+```
