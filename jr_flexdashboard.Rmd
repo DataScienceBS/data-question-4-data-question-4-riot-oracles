@@ -1,9 +1,9 @@
 ---
 title: "Impact of Economic Disadvantage in TN (2015)"
-author: "Justin Rothbart"
-date: "2/6/2018"
+author: "by Justin Rothbart"
 output:
-    flexdashboard::flex_dashboard
+  flexdashboard::flex_dashboard:
+    favicon: tn_sym.png
 ---
 
 ```{r reading_data, include=FALSE}
@@ -14,10 +14,10 @@ merged_df <- readRDS("data/merged_df.rds") # Justin
 ```{r libraries, include=FALSE}
 library(ggplot2)
 library(dplyr)
- library(maps)
- library(mapdata)
- library(ggmap)
- library(plotly)
+library(maps)
+library(mapdata)
+library(ggmap)
+library(plotly)
 
 ```
 ```{r Justin_2, echo = FALSE, warning = FALSE}
@@ -97,6 +97,8 @@ TN_ed_map <- ggplot() +
   labs(title = "% of Economically Disadvantaged Students") +
   theme(plot.title = element_text(hjust = 0.35))
 
+# TN_map <- ggplotly(TN_ed_map, tooltip = c("system_name", "y", "county"), width = 700, height = 250)
+
 TN_map <- ggplotly(TN_ed_map, width = 700, height = 250)
 ```
 
@@ -113,8 +115,7 @@ On the opposite side of the spectrum, **Williamson County** reported a **9.6%** 
 
 * [Similar results have been found in neighboring Georgia (2014 data)](http://documents.atlantaregional.com/regional-snapshot/2014/july/edu-k12.pdf) 
 
-* [Further investigation of the factors associated with the underachievement of disadvantaged students](http://www.tandfonline.com/doi/full/10.1080/2331186X.2016.1178441)
-
+* [Further investigation of the factors associated with the underachievement of disadvantaged students](http://www.tandfonline.com/doi/full/10.1080/2331186X.2016.1178441) 
 
 ### TN Economically Disadvantaged Map
 ```{r ed_map, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
@@ -213,49 +214,53 @@ low_score_math_county <- ed_df[ed_df$system_name == "Humboldt City" & ed_df$Subj
 high_score_science_county <- ed_df[(ed_df$system_name == "Williamson County" & ed_df$Subject == "Science"), ]
 low_score_science_county <- ed_df[ed_df$system_name == "Humboldt City" & ed_df$Subject == "Science", ]
 
-label_create_high <- function(x_var, y_var, text_label) {
-  list(
-  x = x_var,
-  y = y_var,
-  text = text_label,
+high_score_math <- list(
+  x = high_score_math_county$Pct_ED,
+  y = high_score_math_county$Pct_proficient,
+  text = "",
   xref = "x",
   yref = "y",
   showarrow = TRUE,
-  arrowhead = 1,
-  ax = 20,
-  ay = -25
+  arrowhead = 2,
+  ax = 34,
+  ay = -70
 )
-}
 
-label_create_low <- function(x_var, y_var, text_label) {
-  list(
-  x = x_var,
-  y = y_var,
-  text = text_label,
+low_score_math <- list(
+  x = low_score_math_county$Pct_ED,
+  y = low_score_math_county$Pct_proficient,
+  text = "",
   xref = "x",
   yref = "y",
   showarrow = TRUE,
-  arrowhead = 1,
-  ax = 15,
-  ay = -45
+  arrowhead = 2,
+  ax = 42,
+  ay = -60
 )
-}
 
-high_score_math <- label_create_low(high_score_math_county$Pct_ED, 
-             high_score_math_county$Pct_proficient,
-             "")
+high_score_science <- list(
+  x = high_score_science_county$Pct_ED,
+  y = high_score_science_county$Pct_proficient,
+  text = "Williamson County",
+  xref = "x",
+  yref = "y",
+  showarrow = TRUE,
+  arrowhead = 2,
+  ax = 40,
+  ay = -50
+)
 
-low_score_math <- label_create_low(low_score_math_county$Pct_ED,
-                               low_score_math_county$Pct_proficient,
-                               "")
-
-high_score_science <- label_create_high(high_score_science_county$Pct_ED,
-                               high_score_science_county$Pct_proficient,
-                               "Williamson County")
-
-low_score_science <- label_create_high(low_score_science_county$Pct_ED,
-                               low_score_science_county$Pct_proficient,
-                               "Humboldt City")
+low_score_science <- list(
+  x = low_score_science_county$Pct_ED,
+  y = low_score_science_county$Pct_proficient,
+  text = "Humboldt City",
+  xref = "x",
+  yref = "y",
+  showarrow = TRUE,
+  arrowhead = 2,
+  ax = 50,
+  ay = -60
+)
 
 x_prof <- list(title = "% Economically Disadvantaged")
 y_prof <- list(title = "Proficiency Rate")
