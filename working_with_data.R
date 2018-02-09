@@ -42,6 +42,15 @@ combined_df %>%
   ggplot(., aes(x=agi_range, y=agi_a)) +
   geom_point()
 
+combined_df %>% 
+  filter(zip_code != 0 | zip_code != 99999) %>% 
+  filter(agi_range != 'Total') %>% 
+  group_by(agi_range) %>% 
+  mutate(total_return = sum(return_c, na.rm = TRUE)) %>% 
+  ggplot(., aes(x=agi_range, y=total_return)) +
+  geom_col() +
+  theme(axis.text.x = element_text(angle = 60, hjust = 1))
+
 
 #### boxplot for ACT scores as a function of CORE Region ####
 combined_df %>% 

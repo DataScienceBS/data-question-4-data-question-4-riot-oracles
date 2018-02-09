@@ -62,6 +62,9 @@ cor.test(school_farm$pct_farm, school_farm$Enrollment, method = 'pearson') # -0.
 
 cor.test(school_farm$pct_farm, school_farm$Pct_Suspended, method = 'pearson')
 
+
+
+
 farm_map <- school_farm %>% 
   filter(CORE_region != 'NA') %>% 
   filter(Pct_Suspended != 0) %>% 
