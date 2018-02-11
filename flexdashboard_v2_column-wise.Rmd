@@ -1,0 +1,184 @@
+---
+title: "Riot Oracles"
+author: "Justin, Smita, and Brandon"
+date: "2/3/2018"
+output:
+    flexdashboard::flex_dashboard
+---
+
+# AGI and ACT Maps  
+  
+As expected, a higher income from a particular county *does* result in a lower percentage of students that qualify as **"Economically Disadvantaged"** - students that qualified for free or reduced lunches.  
+
+
+```{r reading_data, include=FALSE}
+knitr::opts_chunk$set(include = TRUE)
+combined_df <- readRDS("combined_df.RDS")  # BS
+farm_map <- readRDS("farm_map.RDS")  # BS
+school_cross <- readRDS("school_cross.RDS") # BS  
+merged_df <- readRDS("data/merged_df.rds") # Justin  
+sc_cr_b <- readRDS("data/sc_cr_b.RDS") # Smita 
+```
+
+```{r libraries, include=FALSE}
+library(ggplot2)
+library(dplyr)
+library(maps)
+library(mapdata)
+library(ggmap)
+library(plotly)
+```
+
+
+```{r Justin_2, echo = FALSE, warning = FALSE}
+## Cloropleth
+
+## Total across zip code - removes agi ranges
+zip_total <- merged_df %>% 
+  filter(zip_code != 0 & is.na(agi_range))
+
+ ## Filtering and summarising subject proficiency
+ chloro_df <- zip_total %>% 
+   filter(is.na(agi_range)) %>% 
+   dplyr::select(CORE_region, system_name, county, Pct_ED, AlgI, AlgII, Math, 
+          BioI, Chemistry, Science, ACT_Composite) %>%
+   group_by(county) %>% 
+   summarise_all(funs(mean)) %>% 
+   filter(!is.na(county))
+```
+
+```{r Justin_2b, echo = FALSE, warning = FALSE}
+## Filter data to just include TN
+
+TN_data <- map_data("state") %>% 
+  filter(region =='tennessee')
+
+TN_counties <- map_data("county") %>% 
+  subset(., region == "tennessee")
+
+TN_counties$subregion <- TN_counties$subregion %>% 
+  gsub('de kalb', 'dekalb', .)
+
+chloro_df$county_l <- sapply(chloro_df$county, tolower) %>% 
+  gsub(' county','', .)
+
+## Left join to merge polygon and county data
+
+chloro_df <- left_join(x = TN_counties, y = chloro_df, by = c("subregion" = "county_l"))
+
+## Switching to AGI data
+
+agi_chloro_df <- zip_total %>% 
+  filter(is.na(agi_range)) %>% 
+  mutate(avg_agi = (agi_a * 1000)/return_c) %>% 
+  select(CORE_region, system_name, county, avg_agi) %>%
+  group_by(county) %>% 
+  summarise_all(funs(mean)) %>% 
+  filter(!is.na(county))
+
+## Filter data to just include TN
+
+agi_chloro_df$county_l <- sapply(agi_chloro_df$county, tolower) %>% 
+  gsub(' county','', .)
+
+## Left join to merge polygon and county data
+
+agi_chloro_df <- left_join(x = TN_counties, y = agi_chloro_df, by = c("subregion" = "county_l"))
+
+## Create maps
+
+TN_agi_map <- ggplot() + 
+  geom_polygon(data = agi_chloro_df, 
+               aes(x = long, y = lat, group = group, fill = avg_agi),
+               color = "white", size = 0.25) +
+  coord_map() +
+  scale_fill_distiller(name = "Average AGI", palette = "YlGn") +
+  theme_nothing(legend = TRUE) +
+  labs(title = "Average AGI") +
+  theme(plot.title = element_text(hjust = 0.5)) 
+
+TN_ed_map <- ggplot() + 
+  geom_polygon(data = chloro_df, 
+               aes(x = long, y = lat, group = group, fill = Pct_ED),
+               color = "white", size = 0.25) +
+  coord_map() +
+  scale_fill_distiller(name = "Percent ED", palette = "YlGn") +
+  theme_nothing(legend = TRUE) +
+  labs(title = "% of Economically Disadvantaged Students") +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+```{r ACT_county_map, include=FALSE}
+color_df <- readRDS("color_df.RDS")
+
+TN_map <- ggplot() +
+  geom_polygon(data = color_df,
+               aes(x = long, y = lat, group = group, fill = Average_ACT_Composite),
+               color = "white", size = 0.25) +
+  coord_map() +
+  scale_fill_distiller(name="ACT Scores", palette = "YlGn") +
+  theme_nothing(legend = TRUE) +
+  labs(title = "Average ACT Composite Scores by County") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+
+map1 <- TN_agi_map
+map2 <- TN_ed_map
+map3 <- TN_map
+```
+
+Column {data-width=450}
+-------------------------------------
+
+### Adjusted Gross Income  
+```{r map1, echo=FALSE, message=FALSE, warning=FALSE}
+map1 <- ggplotly(map1, width = 565, height = 155)
+map1
+```   
+
+### Economically Disadvantaged  
+```{r map2, echo=FALSE, message=FALSE, warning=FALSE}
+map2 <- ggplotly(map2, width = 565, height = 155)
+map2
+```   
+
+### Average ACT Composite Scores  
+```{r map3, echo=FALSE, message=FALSE, warning=FALSE}
+map3 <- ggplotly(map3, width = 565, height = 155)
+map3
+```   
+   
+
+Column {data-width=275}
+-------------------------------------
+
+### Adjusted Gross Income  
+As you can see, Williamson County is highlighted with having the highest average AGI per tax return filing, at $106,874. Other counties highlighted appear to be located near 3 other major cities - Knoxville, Memphis, Chattanooga.
+   
+### Economically Disadvantaged  
+The Economically disavantaged areas don't appear to be as drastically separated. It seems the economically dxisadvantaged county shading is more gradual as you get further from the major cities. This is not absolute, as Davidson County / Nashville, falls in the much darker region having 75% economically disadvantaged. 
+  
+### Average ACT Composite Scores  
+With the average ACT composite scores by county, Williamson County is again highlighted and has the highest scores, with an average of 23.8. Unlike the other maps, scores do not appear to have a pattern or relationship across the state or in relation to the 4 major cities. 
+   
+
+Column {data-width=275}
+-------------------------------------
+### Average AGI and ACT Scores by County  
+```{r tableview, echo=FALSE, message=FALSE, warning=FALSE}
+# joining AGI and ACT score sinto one table for display purposes. 
+act_agi_table <- merge(x = color_df, y = agi_chloro_df, by = "subregion", all = TRUE) %>%
+  select(County_Name, avg_agi, Average_ACT_Composite) %>% 
+  group_by(County_Name) %>% 
+  unique()  
+
+# formating numbers, full dollars for AGI, 1 decimal for Avg ACT Scores #
+act_agi_table$avg_agi <- format(act_agi_table$avg_agi, big.mark=",", digits=2, nsmall=0)
+act_agi_table$Average_ACT_Composite <- format(act_agi_table$Average_ACT_Composite, digits=2, nsmall=1)
+
+# displaying table in right frame  
+act_agi_table %>%
+  knitr::kable(format = "markdown",
+  row.names = TRUE, col.names = c("County", "Avg AGI", "Avg ACT Score"))
+  
+```  
+

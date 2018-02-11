@@ -182,7 +182,7 @@ With the average ACT composite scores by county, Williamson County is again high
    
   
 ## Table Row {data-width = 20}
-### Returns filed per AGI Range
+### Average AGI and ACT Scores by County  
 ``` {r kabletest, echo=FALSE, message=FALSE, warning=FALSE}
 #color_df$Average_ACT_Composite <- round(color_df$Average_ACT_Composite, digits = 3) 
 
