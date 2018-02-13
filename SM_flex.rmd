@@ -1,0 +1,220 @@
+---
+title: "Smita_DQ4_flexdashboard practice"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+---
+
+```{r setup, include=FALSE}
+#knitr::opts_chunk$set(include = FALSE)
+library(tidyr)
+library(tidyverse)
+library(dplyr)
+library(gapminder)
+library(ggplot2)
+library(corrplot)
+library(GGally)
+library(ggcorrplot)
+library(PerformanceAnalytics)
+library(MASS)
+library(plotly)
+library(RColorBrewer)
+library(reshape2)
+
+###read the fiels
+scq<- readRDS("data/scq.RDS")
+scq1<- readRDS("data/scq1.RDS")
+scq2<- readRDS("data/scq2.RDS")
+scq3<- readRDS("data/scq3.RDS")
+totaltax<-readRDS("data/totaltax.RDS")
+scq5<-readRDS("data/scq5.RDS")
+ttax_zip<-readRDS("data/ttax_zip.RDS")
+merged2<-readRDS("data/merged2.RDS")
+merged3<-readRDS("data/merged3.RDS")
+scq2l <- scq2%>%
+  rowwise%>%
+  mutate(left = sum(mean_exp +  mean_dropout))
+
+scq2_race<-subset(scq2, select=c(CORE_region, ED, AA, NAm, HS))
+
+scq2_race.m <- melt(scq2_race)
+
+scq7<- scq2_race%>%
+  rowwise()%>%
+  mutate(Others = 100 - (sum(AA + NAm + HS)))
+scq7a<-subset(scq7, select = -c(ED))
+
+scq7a.m<- melt(scq7a)
+rnames <- scq7a[,1]
+mat_scq7a <- data.matrix(scq7a[,2:ncol(scq7a)])
+#rownames(mat_scq7a) <- rnames
+scq_drop <- scq%>%
+  filter(Graduation !=0, ACT_Composite !=0, !is.na(CORE_region))
+
+EastTN<- mat_scq7a[1, ]
+EastLab<- c(8.59,  0.38,  6.06, 84.97)
+FirstTN<- mat_scq7a[2, ]
+FirstTNLab <- c(4.88,  0.37,  5.98, 88.77)
+MidCumb<- mat_scq7a[3, ]
+MidCumbLab <- c(22.95, 0.39, 12.14, 64.52)
+Northwest<- mat_scq7a[4, ]
+NorthwestLab<- c(16.89,  0.16,  4.25, 78.71)
+Southcen <- mat_scq7a[5, ]
+SouthcenLab<- c(9.86,  0.33,  7.23, 82.59)
+Southeast<- mat_scq7a[6, ]
+SoutheastLab<-c(18.52,  0.26,  7.96, 73.26)
+Southwest<- mat_scq7a[7, ]
+SouthwestLab <- c(58.72,  0.18,  8.01, 33.09)
+UpperCum<- mat_scq7a[8, ]
+UpperCumLab <- c(2.98,  0.33,  7.09, 89.59)
+```
+
+Column {data-width=200}
+-----------------------------------------------------------------------
+
+### Ethnic distribution of students in TN core regions
+
+```{r Pieplot, echo=FALSE}
+# knitr::opts_chunk$set(echo = FALSE)
+####pie chart to see the ethic distribution of student in TN high schools
+x <-  c(2831.097, 80214.41, 227431.5, 633221.993)
+leg <-  c("Native American","Hispanic","African American","White/others")
+
+piepercent<- round(100*x/sum(x), 1)
+
+# Plot the chart.
+pie(x, labels = piepercent, main = " TN High Schools",
+    col = rainbow(length(x)))
+legend("left", c("Native American","Hispanic","African American","White/others"), 
+       cex = 0.4,
+       fill = rainbow(length(x)))
+
+pie(EastTN, labels = EastLab,
+    main = "East TN Core Region",
+    col = rainbow(length(x)))
+legend("left", c("African American","Native American","Hispanic","White/others"), 
+       cex = 0.4,
+       fill = rainbow(length(x)))
+
+pie(FirstTN, labels = FirstTNLab,
+    main = "First TN Core Region",
+    col = rainbow(length(x)))
+legend("left", c("African American","Native American","Hispanic","White/others"), 
+       cex = 0.4,
+       fill = rainbow(length(x)))
+
+pie(MidCumb, labels = MidCumbLab,
+    main = "Mid Cumberland Core Region",
+    col = rainbow(length(x)))
+legend("left", c("African American","Native American","Hispanic","White/others"), 
+       cex = 0.4,
+       fill = rainbow(length(x)))
+
+pie(Northwest, labels = NorthwestLab,
+    main = "Northwest TN Core Region",
+    col = rainbow(length(x)))
+legend("left", c("African American","Native American","Hispanic","White/others"), 
+       cex = 0.4,
+       fill = rainbow(length(x)))
+
+pie(Southcen, labels = SouthcenLab,
+    main = "South Central Core Region",
+    col = rainbow(length(x)))
+legend("left", c("African American","Native American","Hispanic","White/others"), 
+       cex = 0.4,
+       fill = rainbow(length(x)))
+
+pie(Southeast, labels = SoutheastLab,
+    main = "Southeast TN Core Region",
+    col = rainbow(length(x)))
+legend("left", c("African American","Native American","Hispanic","White/others"), 
+       cex = 0.4,
+       fill = rainbow(length(x)))
+
+pie(Southwest, labels = SouthwestLab,
+    main = "Southwest/Memphis TN Core Region",
+    col = rainbow(length(x)))
+legend("left", c("African American","Native American","Hispanic","White/others"), 
+       cex = 0.4,
+       fill = rainbow(length(x)))
+
+pie(UpperCum, labels = UpperCumLab,
+    main = "Upper Cumberland Core Region",
+    col = rainbow(length(x)))
+legend("left", c("African American","Native American","Hispanic","White/others"), 
+       cex = 0.4,
+       fill = rainbow(length(x)))
+
+scq2_race<-subset(scq2, select=c(CORE_region, ED, AA, NAm, HS))
+scq2_race.m <- melt(scq2_race)
+
+t2 <- ggplot(scq2_race.m, aes(x = CORE_region, y = value,fill = variable)) + 
+  ggtitle("Percentage of ethnic distribution in TN high school
+          across different core regions") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))+
+  ylab("Percentage of Students") + xlab("")
+t2 <- t2 + geom_bar(stat = "identity", position = "stack")
+
+t2 <- ggplotly(t2)
+t2
+```
+
+Column {data-width=200}
+-----------------------------------------------------------------------
+
+### Comparing the discipline and Graduation status among student attending various TN high schools
+
+```{r Stack bar chart, echo=FALSE}
+scq5.m <- melt(scq5)
+#df.m <- rename(df.m, Period = Var1, Region = Var2)
+
+t1 <- ggplot(scq5.m, aes(x = CORE_region, y = value/1e+06,fill = variable)) + 
+  ggtitle("Grdaduation and student turdiness in TN high school") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))+
+  ylab("Number of Students") + xlab("")
+t1 <- t1 + geom_bar(stat = "identity", position = "stack")
+
+t1 <- ggplotly(t1)
+t1
+```
+
+### Percent Graduation among student attending various TN high schools
+
+```{r notched bar1, echo=FALSE}
+boxplot(Graduation~CORE_region, data =scq_drop,
+        ylab="Percent Graduation",
+        main= "Graduation in TN core regions",
+        notch=FALSE,
+        varwidth=TRUE) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+boxplot(ACT_Composite~CORE_region, data =scq_drop,
+        ylab="Percent ACT_Composite",
+        main= "Graduation in TN core regions",
+        notch=FALSE,
+        varwidth=TRUE) + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+```
+
+
+Column {data-width=200}
+-----------------------------------------------------------------------
+### Percent ACT_Composite scores among student attending various TN high schools
+
+```{r Notched bar2, echo=FALSE}
+
+```
+
+Column {data-width=200}
+-----------------------------------------------------------------------
+### Percent ACT_Composite scores among student attending various TN high schools
+```{r}
+
+```
+
+Column {data-width=200}
+-----------------------------------------------------------------------
+### Percent ACT_Composite scores among student attending various TN high schools
+

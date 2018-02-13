@@ -1,0 +1,399 @@
+---
+title: "School and IRS data analysis for 2015 across TN core regions"
+output: 
+  flexdashboard::flex_dashboard:
+    #orientation: rows
+    vertical_layout: fill
+---
+
+```{r setup, include=FALSE}
+#knitr::opts_chunk$set(include = FALSE)
+#library(flexdashboard)
+library(tidyr)
+library(tidyverse)
+library(dplyr)
+library(gapminder)
+library(ggplot2)
+library(corrplot)
+library(GGally)
+library(ggcorrplot)
+library(PerformanceAnalytics)
+library(MASS)
+library(plotly)
+library(RColorBrewer)
+library(reshape2)
+
+###read the files
+scq<- readRDS("data/scq.RDS")
+scq1<- readRDS("data/scq1.RDS")
+scq2<- readRDS("data/scq2.RDS")
+scq3<- readRDS("data/scq3.RDS")
+totaltax<-readRDS("data/totaltax.RDS")
+scq5<-readRDS("data/scq5.RDS")
+ttax_zip<-readRDS("data/ttax_zip.RDS")
+merged2<-readRDS("data/merged2.RDS")
+merged3<-readRDS("data/merged3.RDS")
+tax2015c<-readRDS("data/tax2015c.RDS")
+merged4<-readRDS("data/merged4.RDS")
+
+scq2l <- scq2%>%
+  rowwise%>%
+  mutate(left = sum(mean_exp +  mean_dropout))
+
+scq2_race<-subset(scq2, select=c(CORE_region, ED, AA, NAm, HS))
+
+scq2_race.m <- melt(scq2_race)
+
+scq7<- scq2_race%>%
+  rowwise()%>%
+  mutate(Others = 100 - (sum(AA + NAm + HS)))
+scq7a<-subset(scq7, select = -c(ED))
+
+scq7a.m<- melt(scq7a)
+rnames <- scq7a[,1]
+mat_scq7a <- data.matrix(scq7a[,2:ncol(scq7a)])
+#rownames(mat_scq7a) <- rnames
+
+scq5.m <- melt(scq5)
+
+scq_drop <- scq%>%
+  filter(Graduation !=0, ACT_Composite !=0, !is.na(CORE_region))
+
+EastTN<- mat_scq7a[1, ]
+EastLab<- c(8.59,  0.38,  6.06, 84.97)
+FirstTN<- mat_scq7a[2, ]
+FirstTNLab <- c(4.88,  0.37,  5.98, 88.77)
+MidCumb<- mat_scq7a[3, ]
+MidCumbLab <- c(22.95, 0.39, 12.14, 64.52)
+Northwest<- mat_scq7a[4, ]
+NorthwestLab<- c(16.89,  0.16,  4.25, 78.71)
+Southcen <- mat_scq7a[5, ]
+SouthcenLab<- c(9.86,  0.33,  7.23, 82.59)
+Southeast<- mat_scq7a[6, ]
+SoutheastLab<-c(18.52,  0.26,  7.96, 73.26)
+Southwest<- mat_scq7a[7, ]
+SouthwestLab <- c(58.72,  0.18,  8.01, 33.09)
+UpperCum<- mat_scq7a[8, ]
+UpperCumLab <- c(2.98,  0.33,  7.09, 89.59)
+```
+
+
+
+
+-----------------------------------------------------------------------
+
+### Chart A::Ethnic distribution of students in TN core regions
+
+```{r pie, echo=FALSE}
+# knitr::opts_chunk$set(echo = FALSE)
+####pie chart to see the ethic distribution of student in TN high schools
+x <-  c(2831.097, 80214.41, 227431.5, 633221.993)
+leg <-  c("Native American","Hispanic","African American","White/others")
+
+piepercent<- round(100*x/sum(x), 1)
+
+# Plot the chart.
+pie(x, labels = piepercent, main = " TN High Schools",
+    col = rainbow(length(x)))
+legend("left", c("Native American","Hispanic","African American","White/others"), 
+       cex = 0.4,
+       fill = rainbow(length(x)))
+
+```
+
+### Ethnic distribution of students in East TN core regions
+```{r}
+pie(EastTN, labels = EastLab,
+    main = "East TN Core Region",
+    col = rainbow(length(x)))
+legend("left", c("African American","Native American","Hispanic","White/others"), 
+       cex = 0.4,
+       fill = rainbow(length(x)))
+```
+
+### Ethnic distribution of students in First TN core regions
+```{r}
+pie(FirstTN, labels = FirstTNLab,
+    main = "First TN Core Region",
+    col = rainbow(length(x)))
+legend("left", c("African American","Native American","Hispanic","White/others"), 
+       cex = 0.4,
+       fill = rainbow(length(x)))
+```
+
+
+### Ethnic distribution of students in MidCumberland TN core regions
+```{r}
+pie(MidCumb, labels = MidCumbLab,
+    main = "Mid Cumberland Core Region",
+    col = rainbow(length(x)))
+legend("left", c("African American","Native American","Hispanic","White/others"), 
+       cex = 0.4,
+       fill = rainbow(length(x)))
+```
+
+### Ethnic distribution of students in Northwest TN core regions
+```{r}
+pie(Northwest, labels = NorthwestLab,
+    main = "Northwest TN Core Region",
+    col = rainbow(length(x)))
+legend("left", c("African American","Native American","Hispanic","White/others"), 
+       cex = 0.4,
+       fill = rainbow(length(x)))
+```
+
+
+### Ethnic distribution of students in South Central TN core regions
+```{r}
+pie(Southcen, labels = SouthcenLab,
+    main = "South Central Core Region",
+    col = rainbow(length(x)))
+legend("left", c("African American","Native American","Hispanic","White/others"), 
+       cex = 0.4,
+       fill = rainbow(length(x)))
+```
+
+
+### Ethnic distribution of students in South East TN core regions
+```{r}
+pie(Southeast, labels = SoutheastLab,
+    main = "Southeast TN Core Region",
+    col = rainbow(length(x)))
+legend("left", c("African American","Native American","Hispanic","White/others"), 
+       cex = 0.4,
+       fill = rainbow(length(x)))
+```
+
+
+### Ethnic distribution of students in Southwest/Memphis TN core regions
+```{r}
+pie(Southwest, labels = SouthwestLab,
+    main = "Southwest/Memphis TN Core Region",
+    col = rainbow(length(x)))
+legend("left", c("African American","Native American","Hispanic","White/others"), 
+       cex = 0.4,
+       fill = rainbow(length(x)))
+```
+
+
+### Ethnic distribution of students in Upper Cumberland TN core regions
+```{r}
+pie(UpperCum, labels = UpperCumLab,
+    main = "Upper Cumberland Core Region",
+    col = rainbow(length(x)))
+legend("left", c("African American","Native American","Hispanic","White/others"), 
+       cex = 0.4,
+       fill = rainbow(length(x)))
+```
+
+
+### Comparison of Economically disadavanted and Ethnic distribution prportion of students in TN core regions
+```{r}
+t2 <- ggplot(scq2_race.m, aes(x = CORE_region, y = value,fill = variable)) + 
+  ggtitle("Percentage of ethnic distribution in TN high school
+          across different core regions") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))+
+  ylab("Percentage of Students") + xlab("")
+t2 <- t2 + geom_bar(stat = "identity", position = "stack")
+
+t2 <- ggplotly(t2)
+t2
+```
+
+
+### Comparing the discipline and Graduation status among student attending various TN high schools
+```{r}
+t1 <- ggplot(scq5.m, aes(x = CORE_region, y = value/1e+06,fill = variable)) + 
+  ggtitle("Grdaduation and student turdiness in TN high school") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))+
+  ylab("Number of Students") + xlab("")
+t1 <- t1 + geom_bar(stat = "identity", position = "stack")
+
+t1 <- ggplotly(t1)
+t1
+```
+
+### Percent ACT_Composite scores among student attending various TN high schools
+```{r}
+p4 <- ggplot(scq_drop, aes(x = CORE_region, y = ACT_Composite, color = Graduation)) +
+  geom_boxplot() + 
+  geom_jitter(size = 1) + 
+  ggtitle("Graduation across TN core region") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+p4<-ggplotly(p4)
+p4
+```
+
+### Percent Graduation among student attending various TN high schools
+```{r}
+p3 <- ggplot(scq_drop, aes(x = CORE_region, y = Graduation, color = ACT_Composite)) +
+  geom_boxplot() + 
+  geom_jitter(size = 1) +
+  ggtitle("Graduation across TN core region") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+ 
+
+p3 <- ggplotly(p3)
+p3
+```
+
+### Agi amounts filed per zip code point sized by the number of returns
+```{r}
+tax2015c_drop<- tax2015c%>%
+  filter(zip_code !=0)
+
+p5 <-ggplot(tax2015c_drop, aes(x= agi_a, y= agi_range, size= return_c, col=zip_code))+
+  geom_point()+ ggtitle("Agi amounts filed per zip_code")
+p5<- ggplotly(p5)
+p5
+```
+
+
+###Effect of agi on per student expenditure across various TN core regions
+```{r}
+p6<-ggplot(merged4, aes(y=Per_Pupil_Expenditures, x=agi, 
+                         color=county)) + 
+  geom_point()+ scale_y_log10() + xlab("agi amount/count") +
+  facet_wrap("CORE_region") 
+p6<-ggplotly(p6)
+p6
+```
+
+###Effect of the agi on the Graduation percentages across various TN core regions
+
+
+```{r}
+pa<-ggplot(merged4, aes(y=Graduation, x=agi, 
+                        color=county)) + 
+  geom_point()+ xlab("agi amount/cout") +
+  facet_wrap("CORE_region") 
+pa<-ggplotly(pa)
+pa
+```
+
+
+###Effect of the wages earned to agi across various TN zip_codes.The size is representative of the ACT composite scores
+```{r echo=FALSE}
+p9<- ggplot(merged4, aes(agi, wage, col = CORE_region)) +
+  geom_point(aes(size = ACT_Composite, frame = zip_code, ids = county)) 
+  
+
+p9 <- ggplotly(p9)
+p9
+
+```
+
+###Effect of the bussiness income  to agi across various TN core regions
+```{r}
+zp5 <- ggplot(data = merged4,
+              aes(x = wage, y = agi)) 
+zp5 <- zp5 + geom_polygon(data = merged4,  # This is also a nice example of how to plot
+                          aes(x = wage, y = agi, fill = CORE_region),  # two superimposed geoms
+                          alpha = 1/2)                             # from different data.frames
+zp5 <- zp5 + geom_point(size=1)
+zp5 <- zp5 + coord_equal()
+zp5 <- zp5 + scale_fill_manual(values = colorRampPalette(rev(brewer.pal(11, "Spectral")))(8))
+zp5
+p11 <- ggplotly(zp5)
+p11
+```
+
+
+###Effect of the bussiness income  to agi across various TN core regions 
+```{r}
+zp4 <- ggplot(data = merged4,
+              aes(x = biz_inc, y = agi)) 
+zp4 <- zp4 + geom_polygon(data = merged4,  # This is also a nice example of how to plot
+                          aes(x = biz_inc, y = agi, fill = CORE_region),  # two superimposed geoms
+                          alpha = 1/2)                             # from different data.frames
+zp4 <- zp4 + geom_point(size=1)
+zp4 <- zp4 + coord_equal()
+zp4 <- zp4 + scale_fill_manual(values = colorRampPalette(rev(brewer.pal(11, "Spectral")))(8))
+zp4
+p8 <- ggplotly(zp4)
+p8
+```
+
+
+
+###Effect of the wages earned to agi across various TN zip_codes and correlation to farm counts
+```{r}
+tax<-tax2015c_drop%>%
+  mutate(agi = agi_a/return_c,
+         wage = wage_a/wage_c)
+p10<- ggplot(tax, aes(agi, wage, col = agi_range)) +
+  geom_point(aes(size= farm_c, frame = zip_code, ids = zip_code)) 
+
+
+p10 <- ggplotly(p10)
+p10
+```
+
+###Comparing Enrollment to expense per pupil, the size of the  point is scaled with percent graduation
+```{r}
+p <- ggplot( scq2, aes(x=mean_expense, y=mean_enrol, 
+                     color = CORE_region, size = grad)) + 
+  geom_point() + ggtitle("Comparing Enrollment to expense per pupil") +
+  xlab("Average expense per student") + ylab("Average Enrollment")
+p <- ggplotly(p)
+p
+```
+
+
+
+###Comparing Enrollment to expense per pupil, the size of the point is scaled with cummulative percent of African american, Hispanic, Native American
+```{r}
+p1 <- ggplot( scq2l, aes(x=mean_expense, y=mean_enrol, color = CORE_region, size = BHN)) + 
+  geom_point() + ggtitle("Comparing Enrollment to expense per pupil") +
+  xlab("Average expense per student") + ylab("Average Enrollment")
+p1 <- ggplotly(p1)
+p1
+```
+
+###Comparing economically disadvantaged student population to dropout and expense per pupil, the size of the point is scaled with number of the students leaving (expelled + dropout) before graduation
+```{r}
+p2<- ggplot( scq2l, aes(x=mean_expense, y= mean_ED, color = CORE_region, size = left)) + 
+  geom_point() + ggtitle("") +
+  xlab("Average expense per student") + ylab("Average Economically Disadvantage")
+p2 <- ggplotly(p2)
+p2
+```
+
+###Mid Cumberland Core has the highest number of economically disadvantaged students and also highest number of the students leaving (expelled + dropout) before graduation. The state of TN is divided in 8 core regions. East TN Core,  First TN core,  Mid Cumberland Core,  Northwest Core,  South Central Core,  Southeast Core,  Southwest/Memphis Core,  Upper Cumberland Core. The Mid Cumberland Core has the highest enrollment of students across all the core regions and Northwest Core has least enrollment of students. The Upper Cumberland core has the highest percent of graduation and lowest BHN population.The Southwest Memphis Core region has the highest percent of BHN and highest prcent of AA followed by Mid cumberland core region. The Southwest Memphis has  lowest graduation rate and the second highest dropouts very close to the highest number of enrolled students droping which is Mid Cumberland core. On analysis we found that the percetage of economically disadvantaged is also highest in the Southwest Memphis Core. Although we found that expentidure per pupil is same for all the core regions. Wages and agi are similary distributed across all TN core regions.Agi from business income is also fairly similar across the region south_east core being the highest. Mid Cumberland Core has the most of business income.agi distribution is very clustered across all the core regions but Shelby county followed by Davidson and Williamson county have most spread out agi.Most agi comes from the cummulative lower tax brackets. Zip-code 37201 is the wealthiest zip_code with highest agi coming from the highest tax bracket. Highest fram count is in zip_code 37743.On doing research we found that if the school budget/spending is incresed so that the schools can provide the students more resources thus compensating for the lack of finnancial support from the family to provide extra resources can help the overall graduation rate and will overall improve the economics of the state overtime. 
+```{r eval=FALSE, include=FALSE}
+###The state of TN is divided in 8 core regions  
+
+###East TN Core,  First TN core,  Mid Cumberland Core,  Northwest Core,  South Central Core,  Southeast Core,  Southwest/Memphis Core,  Upper Cumberland Core,    
+###The Mid Cumberland Core has the highest enrollment of students across all the core regions and Northwest Core has least enrollment of students.  
+
+###The Upper Cumberland core has the highest percent of graduation and lowest BHN population.
+
+###The Southwest Memphis Core region has the highest percent of BHN and highest prcent of AA followed by Mid cumberland core region.
+
+###The Southwest Memphis has  lowest graduation rate and the second highest dropouts very close to the highest number of enrolled students droping which is Mid Cumberland core. 
+
+###On analysis we found that the percetage of economically disadvantaged is also highest in the Southwest Memphis Core. Although we found that expentidure per pupil is same for all the core regions.
+
+###Wages and agi are similary distributed across all TN core regions. 
+###Agi from business income is also fairly similar across the region south_east core being the highest. Mid Cumberland Core has the most of business income.
+
+###agi distribution is very clustered across all the core regions but Shelby county followed by Davidson and Williamson county have most spread out agi.
+
+###Most agi comes from the cummulative lower tax brackets. Zip-code 37201 is the wealthiest zip_code with highest agi coming from the highest tax bracket. 
+###Highest fram count is in zip_code 37743.
+
+
+##On doing research we found that if the school budget/spending is incresed so that the schools can provide the students more resources thus compensating for the lack of finnancial support from the family to provide extra resources can help the overall graduation rate and will overall improve the economics of the state overtime.
+```
+
+
+
+
+-----------------------------------------------------------------------
+
+
+
+
+
+
+

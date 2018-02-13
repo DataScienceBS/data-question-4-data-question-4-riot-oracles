@@ -388,11 +388,164 @@ TN_map <- ggplot(data = TN_data, mapping = aes(x = long, y = lat, group = group)
 
 
 merged3$county <- sapply(merged3$county, tolower)%>%
-  gsub("county", "", .)
+  gsub(" county", "", .)
 TN_counties$subregion <- gsub("de kalb", "dekalb", TN_counties$subregion)
-mer3_county <- left_join(TN_counties, merged3, 
+mer3_county <- left_join(x = TN_counties, y = merged3, 
                          by = c("subregion" = "county"))
+
+map_mer <- anti_join(TN_counties, merged3, by = c("subregion" = "county"))
 p <- ggplot(merged3, aes(x= factor(CORE_region), y = Graduation, 
                          fill = factor(county)))
 p + geom_bar(stat = )
 #testing commit for branch
+View(merged2)
+ggplot(merged3, aes(x = CORE_region, y = Graduation, 
+                    color = CORE_region, size = agi)) +
+  geom_point() + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))+
+  xlab("CORE_region") + ylab("Graduation")
+merged4 <- merged3%>%
+  filter(Graduation !=0, zip_code !=0, !is.na(CORE_region))
+
+ggplot(merged4, aes(x = CORE_region, y = Graduation, 
+                    color = CORE_region, size = agi)) +
+  geom_point() + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))+
+  xlab("CORE_region") + ylab("Graduation")
+
+ggplot(merged4, aes(x = CORE_region, y = Graduation, 
+                     size = agi, color = CORE_region)) +
+  geom_point() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))+
+  xlab("") + ylab("Graduation")
+ggplot(merged4, aes(x = agi, y = Graduation, 
+                    size = Enrollment, color = CORE_region)) +
+  geom_point() + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))+
+  xlab("agi amount/count") + ylab("Graduation")
+ggplot(merged4, aes(x = agi, y = Graduation, 
+                    size = Enrollment, color = CORE_region)) +
+  geom_point() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))+
+  xlab("agi amount/count") + ylab("Graduation")
+
+ggplot(merged4, aes(x = agi, y = Graduation, 
+                    size = Enrollment, color = CORE_region)) +
+  geom_point() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))+
+  xlab("agi amount/count") + ylab("Graduation") + facet_wrap("CORE_region")
+
+ggplot(merged4, aes(x = agi, y = Per_Pupil_Expenditures, 
+                    size = Pct_ED, color = CORE_region)) +
+  geom_point() + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))+
+  xlab("agi amount/count") + ylab("Per Pupil Expense") + facet_wrap("CORE_region")
+
+scq <- school%>%
+  mutate(grad = school$Enrollment* school$Graduation/100,
+         sus = school$Enrollment* school$Pct_Suspended/100,
+         exp = school$Enrollment* school$Pct_Expelled/100,
+         drop = school$Enrollment* school$Dropout/100,
+         abs = school$Enrollment* school$Pct_Chronically_Absent/100,
+         EL = school$Enrollment* school$Pct_EL/100,
+         SWD = school$Enrollment* school$Pct_SWD/100,
+         ED = school$Enrollment* school$Pct_ED/100,
+         NaAm = school$Enrollment* school$Pct_Native_American/100,
+         HS = school$Enrollment* school$Pct_Hispanic/100,
+         AA = school$Enrollment* school$Pct_Black/100,
+         BHN = school$Enrollment* school$Pct_BHN/100,
+         Math1 = (school$AlgI + school$AlgII + Math)/3,
+         Sci = (school$BioI + school$Chemistry + school$Science)/3,
+         Eng = (school$EngI + school$EngII + school$EngIII)/3)
+
+         
+scq1 <- scq%>%
+  group_by(CORE_region)%>%
+  summarise(mean_grad = mean(grad), 
+            mean_composite = mean(ACT_Composite),
+            mean_sus = mean(sus),
+            mean_exp = mean(exp),
+            mean_dropout = mean(drop),
+            mean_enrol = mean(Enrollment),
+            mean_expense = mean(Per_Pupil_Expenditures),
+            mean_absent = mean(abs),
+            mean_ED = mean(ED),
+            mean_NA = mean(NaAm),
+            mean_HS = mean(HS),
+            mean_AA = mean(AA),
+            mean_BHN = mean(BHN),
+            mean_math = mean(Math1),
+            mean_Sci = mean(Sci),
+            mean_Eng = mean(Eng),
+            grad = ((mean_grad/mean_enrol)*100),
+            ED = ((mean_ED/mean_enrol)*100),
+            BHN = ((mean_BHN/mean_enrol)*100),
+            AA = ((mean_AA/mean_enrol)*100),
+            NAm= ((mean_NA/mean_enrol)*100),
+            HS = ((mean_HS/mean_enrol)*100),
+            sus = ((mean_sus/mean_enrol)*100),
+            exp = ((mean_exp/mean_enrol)*100),
+            drop = ((mean_dropout/mean_enrol)*100))
+            
+scq2 <- scq1%>%
+  filter(!is.na(CORE_region))
+
+scq3<- scq1%>%
+  filter(is.na(CORE_region))
+saveRDS(scq, file="data/scq.RDS")
+saveRDS(scq1, file="data/scq1.RDS")
+saveRDS(scq2, file="data/scq2.RDS")
+saveRDS(scq3, file="data/scq3.RDS")
+saveRDS(merged2, file="data/merged2.RDS")
+saveRDS(merged3, file="data/merged3.RDS")
+saveRDS(mem_school, file="data/mem_all")
+saveRDS(mem_grade, file="data/mem_hs")
+
+ggplot(scq1, aes(mean_enrol, grad, size = BHN, color = CORE_region))+
+  geom_point() +
+  scale_x_log10()
+ 
+ggplot(scq2, aes(mean_enrol, grad, size = BHN, color = CORE_region))+
+  geom_point() + facet_wrap("CORE_region")
+  
+ggplot(scq, aes(Enrollment, grad))+
+  geom_boxplot()
+View(scq3)
+scq3[0,]
+
+
+scq4 <- subset(scq3, select = c('BHN', 'AA', 'HS', 'NAm'))
+#to create the pie chart
+# Create data for the graph.
+x <-  c(2831.097, 80214.41, 227431.5, 633221.993)
+leg <-  c("Native American","Hispanic","African American","White/others")
+
+piepercent<- round(100*x/sum(x), 1)
+
+# Give the chart file a name.
+#png(file = "city_percentage_legends.jpg")
+
+# Plot the chart.
+pie(x, labels = piepercent, main = "Ethnic Distribution of students in TN hig schools",col = rainbow(length(x)))
+legend("left", c("Native American","Hispanic","African American","White/others"), cex = 0.8,
+       fill = rainbow(length(x)))
+# Save the file.
+dev.off()
+
+
+scq5<- subset(scq2, select= c(CORE_region, mean_enrol, mean_grad, mean_sus, 
+                              mean_exp, mean_dropout, mean_absent))
+
+sa
+scq6<- t(scq5)  
+saveRDS(scq5, file="data/scq5.RDS")
+saveRDS(totaltax, file="data/totaltax.RDS")
+saveRDS(ttax_zip, file="data/ttax_zip.RDS")
+
+cl<-c("gray", "blue", "red", "green", "orange", "brown")
+category <- c("Enrolled", "Graduated", "Suspended", "Expelled", "Dropout", "Absent")              
+core<- c("East TN Core", "First TN Core", "MidCumberland Core", "Northwest Core", "South Central Core", "Southwest/Memphis Core", "Upper Cumberland Core")
+barplot(scq6, main= "Distribution", names.arg = core, ylab= "Number of students",
+        col = cl)
+legend("left", category, cex=1.3, fill=cl)
+class(scq6)
