@@ -1,10 +1,11 @@
 ---
-title: "Riot Oracles"
-author: "Justin, Smita, and Brandon"
-date: "2/3/2018"
+title: "Flexdashboard"
+author: "Brandon Sanders"
+date: "2/13/2018"
 output:
     flexdashboard::flex_dashboard:
     orientation: rows
+
 ---
 
 <!--- This R markdown file was created as part of the Nashville Software School, Data Science Cohort 01. 
@@ -130,6 +131,9 @@ TN_ed_map <- ggplot() +
   labs(title = "% of Economically Disadvantaged Students") +
   theme(plot.title = element_text(hjust = 0.5))
 ```
+
+<!--- consider leaflet instead of plotly, better control, better legend impact --> 
+
 ```{r ACT_county_map, include=FALSE}
 color_df <- readRDS("color_df.RDS")
 
@@ -198,9 +202,29 @@ act_agi_table %>%
 
 ```
 
+# Correlations  
+
+## Background   
+
+### Insights   {data-height=100}  
+The correlations allowed for prediction of ACT scores for DeKalb County
+
+### Map     {data-height=800}  
+  
+```{r corr}
+library(PerformanceAnalytics)
+
+ACME_corr <- readRDS("ACME_corr.RDS")
+chart.Correlation(ACME_corr, histogram=TRUE, pch=21)
+
+```
+
 # Sources
 
-## left
+## left blank   {data-width=100}
+
+## left center  
+
 ### Packages Used  
  *  readxl  
  *  ggplot2  
@@ -225,11 +249,13 @@ act_agi_table %>%
 *  [School Achievement Data](https://www.tn.gov/education/data/data-downloads.html)   
 *  [Crosswalk, Zip to District](https://www.tn.gov/education/data/data-downloads.html)  
 *  [Department of Education, Data Definitions](https://www.tn.gov/content/dam/tn/education/data/data_definitions.pdf)  
-
+  
 ### Github  
-<align = 'center'>
- 
 [DataScienceBS](http://www.github.com/DataScienceBS)    
-
-![](https://images-na.ssl-images-amazon.com/images/I/41DV9duaRWL.jpg)  
+   
     
+    
+<!-- ![](https://images-na.ssl-images-amazon.com/images/I/41DV9duaRWL.jpg)  --> 
+    
+## right blank     {data-width=100}
+

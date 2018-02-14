@@ -1,7 +1,7 @@
 ---
-title: "Riot Oracles"
-author: "Justin, Smita, and Brandon"
-date: "2/3/2018"
+title: "Flexdashboard"
+author: "Brandon Sanders"
+date: "2/13/2018"
 output:
     flexdashboard::flex_dashboard
 ---
@@ -129,6 +129,8 @@ map3 <- TN_map
 Column {data-width=450}
 -------------------------------------
 
+<!--- consider leaflet instead of plotly, better control, better legend impact --> 
+
 ### Adjusted Gross Income  
 ```{r map1, echo=FALSE, message=FALSE, warning=FALSE}
 map1 <- ggplotly(map1, width = 565, height = 155)
@@ -182,3 +184,4 @@ act_agi_table %>%
   
 ```  
 
+ 

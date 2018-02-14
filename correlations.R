@@ -6,6 +6,7 @@
 library(tidyr)
 library(dplyr)
 library(ggplot2)
+library(plotly)
 
 combined_df <- readRDS("combined_df.RDS")
 merged_df <- readRDS("merged_df.RDS")
@@ -173,3 +174,5 @@ school_cross_no_dekalb_no_outliers
 library(PerformanceAnalytics)
 my_data <- school_cross[, c('ACT_Composite', 'AlgII', 'Math', 'Chemistry', 'ELA')]
 chart.Correlation(my_data, histogram=TRUE, pch=21)
+
+saveRDS(my_data, "ACME_corr.RDS")
